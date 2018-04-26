@@ -4,19 +4,15 @@ import imutils
 import argparse
 import time
 from imutils.video import VideoStream
+from Vision.Target import Target
 
 
 class Vision:
-    def __init__(self):
-        # construct the argument parse and parse the arguments
-        ap = argparse.ArgumentParser()
-        ap.add_argument("-p", "--picamera", type=int, default=-1,
-                        help="whether or not the Raspberry Pi camera should be used")
-        args = vars(ap.parse_args())
-
-        self.cam = VideoStream(usePiCamera=args["picamera"] > 0).start()
+    def __init__(self, usePiCamera=0):
+        self.cam = VideoStream(usePiCamera).start()
         time.sleep(2.0)
 
+        self.target = Target()
         # self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         # self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         # self.cam.set(cv2.CAP_PROP_FPS, 30)
