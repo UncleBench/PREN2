@@ -1,11 +1,22 @@
 import cv2
 import numpy as np
 import imutils
+import argparse
+import time
+from imutils.video import VideoStream
 
 
 class Vision:
     def __init__(self):
-        self.cam = cv2.VideoCapture(0)
+        # construct the argument parse and parse the arguments
+        ap = argparse.ArgumentParser()
+        ap.add_argument("-p", "--picamera", type=int, default=-1,
+                        help="whether or not the Raspberry Pi camera should be used")
+        args = vars(ap.parse_args())
+
+        self.cam = VideoStream(usePiCamera=args["picamera"] > 0).start()
+        time.sleep(2.0)
+
         # self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
         # self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
         # self.cam.set(cv2.CAP_PROP_FPS, 30)
@@ -19,9 +30,9 @@ class Vision:
         self.PURPLE = (255, 0, 255)
 
 
-    def show_webcam(self, mirror=False):
+    def capture(self, mirror=False):
         while True:
-            ret_val, img = self.cam.read()
+            _, img = self.cam.read()
             if mirror:
                 img = cv2.flip(img, 1)
 
@@ -78,6 +89,7 @@ class Vision:
             # while cv2.waitKey(1) != 65:
             #     k = 0
         cv2.destroyAllWindows()
+        self.cam.stop()
 
 
     def get_thresholded_image(self, resized):
@@ -174,4 +186,4 @@ class Vision:
 
 if __name__ == '__main__':
     vision = Vision()
-    vision.show_webcam(mirror=True)
+    vision.capture(mirror=True)
