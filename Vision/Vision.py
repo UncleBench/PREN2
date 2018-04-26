@@ -4,7 +4,7 @@ import imutils
 import argparse
 import time
 from imutils.video import VideoStream
-from Vision.Target import Target
+from Target import Target
 
 
 class Vision:
@@ -28,7 +28,7 @@ class Vision:
 
     def capture(self, mirror=False):
         while True:
-            _, img = self.cam.read()
+            img = self.cam.read()
             if mirror:
                 img = cv2.flip(img, 1)
 
