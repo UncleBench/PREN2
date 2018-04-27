@@ -1,15 +1,14 @@
 import cv2
 import numpy as np
-import imutils
-import argparse
 import time
-from imutils.video import VideoStream
+from VideoStream import VideoStream
 from Target import Target
 
 
 class Vision:
-    def __init__(self, usePiCamera=0):
-        self.cam = VideoStream(usePiCamera).start()
+    def __init__(self, usePiCamera=False):
+        self.stream = VideoStream(usePiCamera=usePiCamera).start()
+        # wait for the camera to initialize
         time.sleep(2.0)
         self.target = Target()
 
@@ -24,18 +23,18 @@ class Vision:
 
     def capture(self, mirror=False):
         while True:
-            img = self.cam.read()
+            img = self.stream.read()
             if mirror:
                 img = cv2.flip(img, 1)
 
-            resized = img[:, 0:1280]
+            resized = img[:, 0:900]
             thresh = self.get_thresholded_image(resized)
 
-            # display threshold image
-            cv2.imshow('Thresholded image', thresh)
-
-            edge = cv2.Canny(thresh, 50, 200, 3)
-            cv2.imshow('Edge image', edge)
+            # # display threshold image
+            # cv2.imshow('Thresholded image', thresh)
+            #
+            # edge = cv2.Canny(thresh, 50, 200, 3)
+            # cv2.imshow('Edge image', edge)
 
             # find contours
             _, cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
@@ -93,7 +92,7 @@ class Vision:
             # while cv2.waitKey(1) != 65:
             #     k = 0
         cv2.destroyAllWindows()
-        self.cam.stop()
+        self.stream.stop()
 
 
     def get_thresholded_image(self, resized):
