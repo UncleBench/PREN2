@@ -27,7 +27,7 @@ class Vision:
             if mirror:
                 img = cv2.flip(img, 1)
 
-            resized = img[:, 0:900]
+            resized = img
             thresh = self.get_thresholded_image(resized)
 
             # # display threshold image
