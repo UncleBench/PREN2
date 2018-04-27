@@ -2,14 +2,16 @@ import serial
 import time
 
 class MotorControl:
-    def __init__(self):
-        self.serCom = serial.Serial("COM3", 115200)
-        self.serCom.timeout = 5
-        line = ""
-        while "Grbl 1.1f ['$' for help]" not in line:
-            time.sleep(0.3)
-            line = self.serCom.readline()
-            line.rstrip()
+    def __init__(self, x0, z0):
+        self.x0 = x0
+        self.z0 = z0
+        #self.serCom = serial.Serial("COM3", 115200)
+        #self.serCom.timeout = 5
+        #line = ""
+        #while "Grbl 1.1f ['$' for help]" not in line:
+        #    time.sleep(0.3)
+        #    line = self.serCom.readline()
+        #    line.rstrip()
 
     def get_pos(self):
         time.sleep(0.3)
