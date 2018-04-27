@@ -28,7 +28,7 @@ class Vision:
             if mirror:
                 img = cv2.flip(img, 1)
 
-            resized = img#[:, 384:896]
+            resized = img[:, 0:1280]
             thresh = self.get_thresholded_image(resized)
 
             # display threshold image
@@ -46,18 +46,30 @@ class Vision:
             # get the hierarchy level of every contour and map the two together
             hierarchy_levels = self.get_contour_levels(hierarchy)
 
+            # initialize target contours
             target_cnts = []
 
+            # is there a single contour with the highest hierarchy? If there is and it's got a high area and solidity,
+            # then it's very likely the contour in the center of the target
             if hierarchy_levels.count(max(hierarchy_levels)) == 1:
                 i = hierarchy_levels.index(max(hierarchy_levels))
-                self.add_contour_if_solidity_and_area_are_high(cnts[i], target_cnts)
+                if self.are_solidity_and_area_high(cnts[i]):
+                    target_cnts.append(cnts[i])
+            # if there's more than one, we'll have to check for further criteria
             else:
                 i = -1
                 for hierarchy_level in hierarchy_levels:
                     i += 1
+                    # filter out contours that aren't enclosed
                     if hierarchy_level > 0:
-                        self.add_contour_if_search_pattern_matches(cnts[i], target_cnts)
+                        # filter out contours that don't have 4 corners
+                        epsilon = cv2.arcLength(cnts[i], True)
+                        approx = cv2.approxPolyDP(cnts[i], 0.02 * epsilon, True)
+                        if len(approx) == 4:
+                            if self.are_solidity_and_area_high(cnts[i]):
+                                target_cnts.append(cnts[i])
 
+            # draw the contour
             cv2.drawContours(resized, target_cnts, -1, self.GREEN, 2)
 
             x, y = 0, 0
@@ -68,7 +80,7 @@ class Vision:
 
             # output target coordinates
             self.draw_text(resized, 'Target: {:4d}, {:4d}'.format(x, y), self.RED)
-
+            # show solidity and area
             self.draw_solidity_and_area_on_contours(resized, target_cnts)
 
             # display original image with recognized contours
@@ -85,8 +97,6 @@ class Vision:
 
 
     def get_thresholded_image(self, resized):
-        # Crop image to 720:720, resize to 512:512
-        # resized = cv2.resize(img[:, 280:1000], (512, 512))
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
         norm_image = blurred
@@ -97,17 +107,9 @@ class Vision:
         return thresh
 
 
-    def add_contour_if_search_pattern_matches(self, c, target_cnts):
-            epsilon = cv2.arcLength(c, True)
-            approx = cv2.approxPolyDP(c, 0.02 * epsilon, True)
-
-            # filter out contours that don't have 4 corners
-            if len(approx) == 4:
-                self.add_contour_if_solidity_and_area_are_high(c, target_cnts)
-
-
-    def add_contour_if_solidity_and_area_are_high(self, c, target_cnts):
+    def are_solidity_and_area_high(self, c):
         area = cv2.contourArea(c)
+        solidity_and_area_are_high = False
         if area:
             # (x, y, w, h) = cv2.boundingRect(c)
             #
@@ -122,9 +124,10 @@ class Vision:
             hullArea = cv2.contourArea(hull)
             solidity = area / float(hullArea)
 
-            # filter out contours that don't have the propper shape
+            # filter out small contours with low solidity
             if area > 100 and solidity > 0.95:
-                target_cnts.append(c)
+                solidity_and_area_are_high = True
+        return solidity_and_area_are_high
 
 
     def draw_solidity_and_area_on_contours(self, img, contours):
