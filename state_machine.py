@@ -103,6 +103,8 @@ if __name__ == '__main__':
     prachtstueck = Prachtstueck(args["picamera"])
     machine = Machine(prachtstueck, states=states, transitions=transitions, initial='sleep')
     prachtstueck.wake_up()
+    prachtstueck.init_finished()
+    prachtstueck.start()
     print prachtstueck.state
     # create Graph -> graphviz needed!
-    # prachtstueck.get_graph().draw('my_state_diagram.png', prog='dot')
+    #prachtstueck.get_graph().draw('my_state_diagram.png', prog='dot')
