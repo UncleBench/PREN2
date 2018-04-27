@@ -11,11 +11,7 @@ class Vision:
     def __init__(self, usePiCamera=0):
         self.cam = VideoStream(usePiCamera).start()
         time.sleep(2.0)
-
         self.target = Target()
-        # self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-        # self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-        # self.cam.set(cv2.CAP_PROP_FPS, 30)
 
         # constants for output
         self.BLUE = (255, 0, 0)
@@ -32,7 +28,7 @@ class Vision:
             if mirror:
                 img = cv2.flip(img, 1)
 
-            resized = img[:, 384:896]
+            resized = img#[:, 384:896]
             thresh = self.get_thresholded_image(resized)
 
             # display threshold image
