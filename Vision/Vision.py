@@ -8,7 +8,8 @@ from Target import Target
 
 class Vision:
     def __init__(self, usePiCamera=False, debug=False):
-        self.stream = VideoStream(usePiCamera=usePiCamera).start()
+        self.usePiCamera = usePiCamera
+        self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
         # wait for the camera to initialize
         time.sleep(2.0)
 
@@ -28,16 +29,17 @@ class Vision:
         self.ORANGE = (0, 165, 255)
         self.PURPLE = (255, 0, 255)
 
-    def capture(self, mirror=False):
+    def capture(self):
         while True:
-            if self.debug:
-                print(time.time())
+            # if self.debug:
+            #     print(time.time())
 
             img = self.stream.read()
-            if mirror:
+
+            if self.usePiCamera:
                 img = cv2.flip(img, 1)
 
-            resized = img
+            resized = img[:, 392:904]
             thresh = self.get_thresholded_image(resized)
 
             # # display threshold image
