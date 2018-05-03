@@ -1,18 +1,27 @@
 import cv2
 import numpy as np
 import time
+from imutils.video import FPS
 from VideoStream import VideoStream
 from Target import Target
 
 
 class Vision:
-    def __init__(self, usePiCamera=False):
-        self.stream = VideoStream(usePiCamera=usePiCamera).start()
+    def __init__(self, usePiCamera=False, debug=False):
+        self.usePiCamera = usePiCamera
+        self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
         # wait for the camera to initialize
         time.sleep(2.0)
+
+        # FPS counter for debug mode
+        if debug:
+            self.debug = debug
+            self.fps = FPS().start()
+
+        # output
         self.target = Target()
 
-        # constants for output
+        # constants for display output
         self.BLUE = (255, 0, 0)
         self.GREEN = (0, 255, 0)
         self.RED = (0, 0, 255)
@@ -20,14 +29,17 @@ class Vision:
         self.ORANGE = (0, 165, 255)
         self.PURPLE = (255, 0, 255)
 
-
-    def capture(self, mirror=False):
+    def capture(self):
         while True:
+            # if self.debug:
+            #     print(time.time())
+
             img = self.stream.read()
-            if mirror:
+
+            if self.usePiCamera:
                 img = cv2.flip(img, 1)
 
-            resized = img
+            resized = img[:, 392:904]
             thresh = self.get_thresholded_image(resized)
 
             # # display threshold image
@@ -75,7 +87,12 @@ class Vision:
             if target_cnts:
                 smallest_contour = self.find_smallest_contour(target_cnts)
                 x, y = self.determine_center(smallest_contour)
-                cv2.circle(resized, (x, y), 5, self.YELLOW, -1)
+                if y != 0:
+                    self.target.found = True
+                else:
+                    self.target.found = False
+                self.target.y = y
+                cv2.circle(resized, (x, self.target.y), 5, self.YELLOW, -1)
 
             # output target coordinates
             self.draw_text(resized, 'Target: {:4d}, {:4d}'.format(x, y), self.RED)
@@ -91,9 +108,18 @@ class Vision:
             # A to go frame by frame
             # while cv2.waitKey(1) != 65:
             #     k = 0
+
+            if self.debug:
+                # update the fps counter
+                self.fps.update()
         cv2.destroyAllWindows()
         self.stream.stop()
 
+        if self.debug:
+            # stop the timer and display FPS information
+            self.fps.stop()
+            print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
+            print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
 
     def get_thresholded_image(self, resized):
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
@@ -104,7 +130,6 @@ class Vision:
         ret, thresh = cv2.threshold(norm_image, 0, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C + cv2.THRESH_OTSU)
         #ret, thresh = cv2.threshold(norm_image, 10, 250, cv2.THRESH_OTSU)
         return thresh
-
 
     def are_solidity_and_area_high(self, c):
         area = cv2.contourArea(c)
@@ -128,7 +153,6 @@ class Vision:
                 solidity_and_area_are_high = True
         return solidity_and_area_are_high
 
-
     def draw_solidity_and_area_on_contours(self, img, contours):
         for c in contours:
             area = cv2.contourArea(c)
@@ -141,14 +165,12 @@ class Vision:
                 cv2.putText(img, '{:f}'.format(area), tuple(c[c[:, :, 0].argmax()][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
                             self.RED, 2)
 
-
     def find_smallest_contour(self, contours):
         # Find the index of the smallest target contour
         areas = [cv2.contourArea(c) for c in contours]
         if len(areas) > 0:
             min_index = np.argmin(areas)
             return contours[min_index]
-
 
     def get_contour_levels(self, hierarchy):
         contour_levels = []
@@ -161,12 +183,10 @@ class Vision:
             contour_levels.append(lvl)
         return contour_levels
 
-
     def draw_text(self, img, msg, col):
         h, _, _ = img.shape
         x, y = 10, h - 10
         cv2.putText(img, msg, (x,y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, col, 2)
-
 
     def determine_center(self, contour):
         cx, cy = -1, -1
