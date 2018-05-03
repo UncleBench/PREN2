@@ -6,7 +6,7 @@ class TestPosSensor(TestCase):
     def setUp(self):
         platform = Platform(k=340.0, b=110.0, a=61.4)
         #self.prachtstueck = Prachtstueck(10.0, 10.0, r_1=1.0, r_2=1.0, d=21.5, u=10.75, v=2.7, ap=2.7, lp=10.0)
-        self.prachtstueck = Prachtstueck(10.0, 10.0, d=30.0, u=13.93, v=6.9, ap=-1.95, lp=9.4)
+        self.prachtstueck = Prachtstueck(10.0, 10.0, d=30.0, u=13.93, v=6.9, ap=-2.725, lp=9.4)
         self.testee = PosSensor(platform=platform, prachtstueck=self.prachtstueck)
 
     def test_getPosPrachtstueck(self):
