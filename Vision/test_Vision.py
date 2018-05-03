@@ -3,5 +3,5 @@ from imutils.video import FPS
 
 
 if __name__ == '__main__':
-    vision = Vision(usePiCamera=False, debug=True)
+    vision = Vision(usePiCamera=True, debug=True)
     vision.capture()
