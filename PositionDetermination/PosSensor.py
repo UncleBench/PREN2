@@ -32,31 +32,27 @@ class Platform:
         self.l = sqrt(square(self.b - self.a) + square(self.k)) # Laenge Seil
 
 class Prachtstueck:
-    def __init__(self, offsetDrive, offsetElevator, r_1=1.0, r_2=1.0, d=21.5, u=10.75, v=2.7, ap=2.7, lp=10.0):
+    def __init__(self, offsetDrive, offsetElevator, d=30.0, u=13.93, v=6.9, ap=-2.725, lp=8.3):
         """
         Args:
             offsetDrive (float): [cm] offset of the drive distance (already driven distance on the rope)
             offsetElevator (float): [cm] offset of the elevation distance (already lowered distance of the "claw")
-            r_1 (float): [cm] radius of the drive wheel
-            r_2 (float): [cm] radius of the elevator wheel
             d (float): [cm] distance between the two wheel shafts (alpha and beta)
             u (float): [cm] horizontal distance between elevator wheel shaft and drive wheel shaft
             v (float): [cm] vertical distance between elevator wheel shaft and top of rope
-            ap (float): [cm] vertical distance between bottom of rope and angle sensor shaft
+            ap (float): [cm] vertical distance between top of rope and angle sensor shaft
             lp (float): [cm] length of the angle sensor lever
 
         Returns:
             Prachtstueck: instance
         """
         # dimensions of the "Prachtstueck"
-        self.r_1 = r_1                              # Radius Rolle Antrieb
-        self.r_2 = r_2                              # Radius Rolle Seilwinde
         self.d = d                                  # Abstand zwischen Rollen
         self.u = u                                  # vertikale Distanz Seilwinde - obere Rolle
         self.v = v                                  # horizontale Distanz Seilwinde - obere Rolle
         self.ap = ap                                # vertikale Distanz Drehpunkt Winkelsensor zu unterer Seilflaeche
         self.lp = lp                                # Laenge des Hebels (Drehpunkt Poti bis Kontakt mit Seil)
-        self.bp = sqrt(square(self.lp)-square(self.ap))     # Horizontale Distanz Drehpunkt Poti bis Kontakt Seil (Bei 0Grad Winkel)
+        self.bp = sqrt(square(self.lp)-square(self.ap)) # Horizontale Distanz Drehpunkt Poti bis Kontakt Seil (Bei 0Grad Winkel)
 
         self.offsetDrive = offsetDrive
         self.offsetElevator = offsetElevator
@@ -96,17 +92,17 @@ class PosSensor:
             self.prachtstueck = Prachtstueck(10.0, 10.0)
         self.alphaSensor = alphaSensor
         if self.alphaSensor is None:
-            self.alphaSensor = AngleSensor(2163.0, -0.00117507316)
+            self.alphaSensor = AngleSensor(2109.0, 0.001091)
         self.betaSensor = betaSensor
         if self.betaSensor is None:
-            self.betaSensor = AngleSensor(2178.0, 0.00127890506)
+            self.betaSensor = AngleSensor(2489.0, -0.001091)
 
-    def getPosPrachtstueck(self, rawAlpha, rawBeta, nRotDrive):
+    def getPosPrachtstueck(self, rawAlpha, rawBeta, drivenRopeDistance):
         """calculates and returns the position of the "Prachtstueck" (shaft of the elevator motor; not the load!!!)
         Args:
             rawAlpha (int): raw ADC value of the alpha angle sensor
             rawBeta (int): raw ADC value of the beta angle sensor
-            nRotDrive (int): number of the rotation of the drive motor which already took place
+            drivenRopeDistance (float): driven distance on the rope in [cm]
 
         Returns:
             Position: x and z Position of the "Prachtstueck" (shaft of the elevator motor)
@@ -116,17 +112,14 @@ class PosSensor:
         alpha = self.angleCorrection(self.alphaSensor.getRadiants(rawAlpha))
         beta = self.angleCorrection(self.betaSensor.getRadiants(rawBeta))
 
-        s = nRotDrive
-        #s = self.l - nRotDrive * 2 * pi * self.r_1 - self.s_10
-
         gamma = pi - alpha - beta
         ds = self.prachtstueck.d * sin(beta) / sin(gamma)
-        s_tot = s + ds
+        s_tot = drivenRopeDistance + ds
         delta = arcsin(sin(gamma) * s_tot/self.platform.l)
         epsilon = pi - gamma - delta
         eta = zeta - epsilon
-        p = s * sin(eta)
-        q = s * cos(eta)
+        p = drivenRopeDistance * sin(eta)
+        q = drivenRopeDistance * cos(eta)
         theta = pi/2 - eta - alpha
 
         position.x = self.platform.k - p - (self.prachtstueck.u * cos(theta) - self.prachtstueck.v * sin(theta))
@@ -134,29 +127,29 @@ class PosSensor:
 
         return position
 
-    def getPosLoadByRaw(self, rawAlpha, rawBeta, nRotDrive, nRotElevator):
+    def getPosLoadByRaw(self, rawAlpha, rawBeta, drivenRopeDistance, elevatorDistance):
         """returns position of the load
         Args:
             rawAlpha (int): raw ADC value of the alpha angle sensor
             rawBeta (int): raw ADC value of the beta angle sensor
-            nRotDrive (int): number of the rotation of the drive motor which already took place
-            nRotElevator (int): number of the rotation of the elevator motor which already took place
+            drivenRopeDistance (float): driven distance on the rope in [cm]
+            elevatorDistance (float): driven distance on the z axis in [cm]
 
         Returns:
             Position: x and z Position of the "Load"
         """
-        return self.getPosLoadRel(self.getPosPrachtstueck(rawAlpha, rawBeta, nRotDrive), nRotElevator)
+        return self.getPosLoadRel(self.getPosPrachtstueck(rawAlpha, rawBeta, drivenRopeDistance), elevatorDistance)
 
-    def getPosLoadRel(self, posPrachtstueck, nRotElevator):
+    def getPosLoadRel(self, posPrachtstueck, elevatorDistance):
         """returns position of the load
         Args:
             posPrachtstueck (Position): Position of the "Prachtstueck"
-            nRotElevator (int): number of the rotation of the elevator motor which already took place
+            elevatorDistance (float): driven distance on the z axis in [cm]
 
         Returns:
             Position: x and z Position of the "Load"
         """
-        return Position(posPrachtstueck.x, posPrachtstueck.z - (nRotElevator * 2.0 * pi * self.prachtstueck.r_2 + self.prachtstueck.offsetElevator))
+        return Position(posPrachtstueck.x, posPrachtstueck.z - elevatorDistance + self.prachtstueck.offsetElevator)
 
     def angleCorrection(self, angle):
         """corrects the measuread angle
@@ -178,9 +171,9 @@ class PosSensor:
 
 if __name__ == '__main__':
     posSensor = PosSensor()
-    alpha = 21.338
-    beta = 24.965
+    alpha = 6.09
+    beta = 22.359
     alpha_ = (alpha / (-0.00117507316)) * pi/180 + 2163.0
     beta_ = (beta / (0.00127890506)) * pi/180 + 2178.0
-    position = posSensor.getPosPrachtstueck(alpha_, beta_, 221.689)
+    position = posSensor.getPosPrachtstueck(alpha_, beta_, 166.771)
     print(position.x, position.z)
