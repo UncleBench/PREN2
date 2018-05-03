@@ -1,34 +1,36 @@
 import serial
 import time
 
+
 class MotorControl:
-    def __init__(self, x0, z0):
+    def __init__(self, x0, z0, com="COM5", baud=115200):
         self.x0 = x0
         self.z0 = z0
-        self.init_communication("COM5")
+        self.ser_com = None
+        self.init_communication(com, baud)
 
-    def init_communication(self, com):
-        self.serCom = serial.Serial(com, 115200)
-        self.serCom.timeout = 5
+    def init_communication(self, com, baud):
+        self.ser_com = serial.Serial(com, baud)
+        self.ser_com.timeout = 5
         line = ""
         while "Grbl 1.1f ['$' for help]" not in line:
             time.sleep(0.3)
-            line = self.serCom.readline()
+            line = self.ser_com.readline()
             line.rstrip()
 
-    def set_command(self, str):
-        self.serCom.write(str + "\n")
-        responseMsg = self.serCom.readline()
-        print "response Msg:" + responseMsg
-        if "ok" in responseMsg:
+    def set_command(self, command):
+        self.ser_com.write(command + "\n")
+        response_msg = self.ser_com.readline()
+        print "response Msg:" + response_msg
+        if "ok" in response_msg:
             return
-        if "error" in responseMsg:
-            raise Exception("Grbl command" + str +"failed, " + responseMsg)
-        raise Exception("Grbl command" + str + "failed, received response msg:" + responseMsg)
+        if "error" in response_msg:
+            raise Exception("Grbl command" + command + " failed, " + response_msg)
+        raise Exception("Grbl command" + command + "failed, received response msg:" + response_msg)
 
-    def get_command(self, str):
-        self.serCom.write(str + "\n")
-        return self.serCom.readline().rstrip()
+    def get_command(self, command):
+        self.ser_com.write(command + "\n")
+        return self.ser_com.readline().rstrip()
 
     def get_pos_decoded(self):
         """returns decoded states of the motors
@@ -38,46 +40,40 @@ class MotorControl:
         Returns:
             tuple: (String: state, Dictonary: Position ("x", "y", "z"))
         """
-        str = self.get_command("?")
-        start = str.index("<") + 1
-        stop = str.index(">", start)
-        state = str[start:stop].split("|")[0]
-        mPos = {}
-        for sub_str in str[start:stop].split("|"):
+        response = self.get_command("?")
+        start = response.index("<") + 1
+        stop = response.index(">", start)
+        state = response[start:stop].split("|")[0]
+        m_pos = {}
+        for sub_str in response[start:stop].split("|"):
             if sub_str.split(":")[0] == "MPos":
                 super_sub_str = sub_str.split(":")[1]
-                mPos['x'] = float(super_sub_str.split(",")[0])
-                mPos['y'] = float(super_sub_str.split(",")[1])
-                mPos['z'] = float(super_sub_str.split(",")[2])
+                m_pos['x'] = float(super_sub_str.split(",")[0])
+                m_pos['y'] = float(super_sub_str.split(",")[1])
+                m_pos['z'] = float(super_sub_str.split(",")[2])
 
-        return state, mPos
+        return state, m_pos
 
-    def drive(self, x = None, xSpeed=30000, z = None, zSpeed=10000, camera = None, cameraSpeed = 1):
+    def drive(self, x=None, z=None, camera=None, speed=10000):
         """this method lets the motors drive with the given position and speed
             Args:
                 x (float) : distance to drive in x-direction
-                xSpeed (int) : speed in x-direction
                 z (float) : distance to drive in z-direction
-                zSpeed (int) : speed in z-direction
                 camera (float) :  angle of how far to rotate the camera
-                cameraSpeed (int) : rotating speed
+                speed (int) : speed of the driven motors
 
             Returns:
                 -
         """
         command = "$J=G91 G21"
-        if x != None:
+        if x is not None:
             command += " X" + str(x)
-            if xSpeed != None:
-                command += "F" + str(xSpeed)
-        if z != None:
+        if z is not None:
             command += " Z" + str(z)
-            if zSpeed != None:
-                command += "F" + str(zSpeed)
-        if camera != None:
+        if camera is not None:
             command += " Y" + str(camera)
-            if cameraSpeed != None:
-                command += "F" + str(cameraSpeed)
+        if speed is not None:
+            command += "F" + str(speed)
 
         print command
         self.set_command(command)
@@ -89,22 +85,20 @@ class MotorControl:
         self.set_command(command)
 
     def drive_x(self, distance, speed):
-        self.drive(x = distance, xSpeed=speed)
-
+        self.drive(x=distance, speed=speed)
 
     def drive_z(self, distance, speed):
-        self.drive(z=distance, zSpeed=speed)
-
+        self.drive(z=distance, speed=speed)
 
     def get_distance_driven(self):
-        pos = self.get_pos_encoded()
-        return pos(0)[0], pos(0)[1]
-
+        distance = self.get_pos_decoded()(1)
+        return distance['x'], distance['z']
 
     def move_camera(self, deg):
-        self.drive(camera=deg)
+        self.drive(camera=deg, speed=100)
+
 
 if __name__ == '__main__':
-    mc = MotorControl(0,0)
-    mc.drive(x=10, z=2.2, zSpeed=None, camera=0.123, cameraSpeed=None)
+    mc = MotorControl(0, 0)
+    mc.drive(x=10, z=2.2, camera=0.123, speed=10)
     print mc.get_pos_decoded()
