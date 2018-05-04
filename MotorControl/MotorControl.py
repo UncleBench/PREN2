@@ -92,7 +92,7 @@ class MotorControl:
 
     def get_distance_driven(self):
         distance = self.get_pos_decoded()(1)
-        return distance['x'], distance['z']
+        return distance
 
     def move_camera(self, deg):
         self.drive(camera=deg, speed=100)

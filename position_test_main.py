@@ -19,8 +19,8 @@ if __name__ == '__main__':
             beta_ = arduino.getRawBeta()
         except:
             pass
-        dist = mc.get_distance_driven()(0)
+        dist = mc.get_distance_driven()
         pos = posSensor.get_pos_prachtstueck(alpha_, beta_, dist)
-        print('x:{:5.1f}  z:{:5.1f} | s:{:5.1f} | ralpha:{:4d} rbeta:{:4d}'.format(pos.x, pos.y, dist, alpha_, beta_))
+        print('x:{:5.1f}  z:{:5.1f} | s:{:5.1f} | ralpha:{:4d} rbeta:{:4d}'.format(pos.x, pos.y, dist['x'], alpha_, beta_))
 
 
