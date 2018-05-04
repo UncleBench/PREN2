@@ -32,6 +32,12 @@ class MotorControl:
     def get_command(self, command):
         print "get_command: ", command
         self.ser_com.write(command + "\n")
+        response_msg = self.ser_com.readline()
+        print "response Msg:" + response_msg
+        if "ok" in response_msg:
+            return
+        if "error" in response_msg:
+            raise Exception("Grbl command" + command + " failed, " + response_msg)
         return self.ser_com.readline().rstrip()
 
     def get_pos_decoded(self):
@@ -43,8 +49,8 @@ class MotorControl:
             tuple: (String: state, Dictonary: Position ("x", "y", "z"))
         """
         response = ""
-        while ("<" not in response) or (">" not in response):
-            response = self.get_command("?")
+        #while ("<" not in response) or (">" not in response):
+        response = self.get_command("?")
         print "resonse: ", response
         start = response.index("<") + 1
         stop = response.index(">", start)
