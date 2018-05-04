@@ -4,8 +4,8 @@ from PositionDetermination import PosSensor
 import time
 
 if __name__ == '__main__':
-    arduino = SerialCommunication.SerialCommunication('/dev/ttyACM1', 9600)
-    mc = MotorControl.MotorControl(0, 0, com='/dev/ttyACM0')
+    arduino = SerialCommunication.SerialCommunication('/dev/ttyACM0', 9600)
+    mc = MotorControl.MotorControl(0, 0, com='/dev/ttyACM1')
     posSensor = PosSensor.PosSensor()
 
     alpha_ = 2000
