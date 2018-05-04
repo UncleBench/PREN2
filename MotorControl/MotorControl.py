@@ -19,10 +19,8 @@ class MotorControl:
             line.rstrip()
 
     def set_command(self, command):
-        print "set_command: ", command
         self.ser_com.write(command + "\n")
         response_msg = self.ser_com.readline()
-        print "response Msg:" + response_msg
         if "ok" in response_msg:
             return
         if "error" in response_msg:
@@ -30,15 +28,9 @@ class MotorControl:
         raise Exception("Grbl command" + command + "failed, received response msg:" + response_msg)
 
     def get_command(self, command):
-        print "get_command: ", command
         self.ser_com.write(command + "\n")
-        response_msg = self.ser_com.readline()
-        print "response Msg:" + response_msg
-        if "ok" in response_msg:
-            return self.ser_com.readline().rstrip()
-        if "error" in response_msg:
-            raise Exception("Grbl command" + command + " failed, " + response_msg)
         return self.ser_com.readline().rstrip()
+
     def get_pos_decoded(self):
         """returns decoded states of the motors
         Args:
@@ -48,9 +40,8 @@ class MotorControl:
             tuple: (String: state, Dictonary: Position ("x", "y", "z"))
         """
         response = ""
-        #while ("<" not in response) or (">" not in response):
-        response = self.get_command("?")
-        print "resonse: ", response
+        while ("<" not in response) or (">" not in response):
+            response = self.get_command("?")
         start = response.index("<") + 1
         stop = response.index(">", start)
         state = response[start:stop].split("|")[0]
@@ -85,7 +76,6 @@ class MotorControl:
         if speed is not None:
             command += "F" + str(speed)
 
-        print command
         self.set_command(command)
 
     def stop(self):
