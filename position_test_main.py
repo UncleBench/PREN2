@@ -4,12 +4,8 @@ from PositionDetermination import PosSensor
 import time
 
 if __name__ == '__main__':
-    try:
-        arduino = SerialCommunication.SerialCommunication('/dev/ttyACM0', 9600)
-        mc = MotorControl.MotorControl(0, 0, com='/dev/ttyACM1')
-    except:
-        arduino = SerialCommunication.SerialCommunication('/dev/ttyACM1', 9600)
-        mc = MotorControl.MotorControl(0, 0, com='/dev/ttyACM0')
+    arduino = SerialCommunication.SerialCommunication('/dev/SensorActor', 9600)
+    mc = MotorControl.MotorControl(0, 0, com='/dev/Motor')
 
     posSensor = PosSensor.PosSensor()
 
