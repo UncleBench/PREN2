@@ -21,6 +21,6 @@ if __name__ == '__main__':
             pass
         dist = mc.get_distance_driven()
         pos = posSensor.get_pos_prachtstueck(alpha_, beta_, dist['x'])
-        print('x:{:5.1f}  z:{:5.1f} | s:{:5.1f} | ralpha:{:4d} rbeta:{:4d}'.format(pos.x, pos.y, dist['x'], alpha_, beta_))
+        print('x:{:5.1f}  z:{:5.1f} | s:{:5.1f} | ralpha:{:4d} rbeta:{:4d}'.format(pos.x, pos.z, dist['x'], alpha_, beta_))
 
 
