@@ -4,8 +4,13 @@ from PositionDetermination import PosSensor
 import time
 
 if __name__ == '__main__':
-    arduino = SerialCommunication.SerialCommunication('/dev/ttyACM0', 9600)
-    mc = MotorControl.MotorControl(0, 0, com='/dev/ttyACM1')
+    try:
+        arduino = SerialCommunication.SerialCommunication('/dev/ttyACM0', 9600)
+        mc = MotorControl.MotorControl(0, 0, com='/dev/ttyACM1')
+    except:
+        arduino = SerialCommunication.SerialCommunication('/dev/ttyACM1', 9600)
+        mc = MotorControl.MotorControl(0, 0, com='/dev/ttyACM0')
+
     posSensor = PosSensor.PosSensor()
 
     alpha_ = 2000
@@ -20,7 +25,7 @@ if __name__ == '__main__':
             beta_ = arduino.getRawBeta()
         except:
             pass
-        dist = mc.get_distance_driven()
+        dist = 40.0 + mc.get_distance_driven()
         pos = posSensor.get_pos_prachtstueck(alpha_, beta_, dist['x'])
         print('x:{:5.1f}  z:{:5.1f} | s:{:5.1f} | ralpha:{:4d} rbeta:{:4d} | battery:{:5.1f}'.format(pos.x, pos.z, dist['x'], alpha_, beta_, battery_v))
 
