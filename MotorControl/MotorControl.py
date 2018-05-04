@@ -35,10 +35,10 @@ class MotorControl:
         response_msg = self.ser_com.readline()
         print "response Msg:" + response_msg
         if "ok" in response_msg:
-            return
+            return self.ser_com.readline().rstrip()
         if "error" in response_msg:
             raise Exception("Grbl command" + command + " failed, " + response_msg)
-        return self.ser_com.readline().rstrip()
+        raise Exception("Grbl command" + command + "failed, received response msg:" + response_msg)
 
     def get_pos_decoded(self):
         """returns decoded states of the motors
