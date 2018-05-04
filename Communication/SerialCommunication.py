@@ -120,7 +120,7 @@ class SerialCommunication:
         Raises:
             CommException: ... when communication fails / ERR received / timeout exceeded
         """
-        return float(self.getCommand("GV") / 10)
+        return float(self.getCommand("GV")) / 10
 
     def setGrabber(self, state):
         """sets the grabber state on the Arduino
