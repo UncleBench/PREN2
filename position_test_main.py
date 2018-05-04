@@ -11,13 +11,13 @@ if __name__ == '__main__':
     alpha_ = 2000
     beta_ = 2000
 
-    mc.drive_x(20, 5000)
+    mc.drive_x(20, 10000)
     while 1:
         time.sleep(0.5)
+        battery_v = arduino.getBatteryVoltage()
         try:
             alpha_ = arduino.getRawAlpha()
             beta_ = arduino.getRawBeta()
-            battery_v = arduino.getBatteryVoltage()
         except:
             pass
         dist = mc.get_distance_driven()
