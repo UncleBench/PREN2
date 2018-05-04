@@ -19,6 +19,7 @@ class MotorControl:
             line.rstrip()
 
     def set_command(self, command):
+        print "set_command: ", command
         self.ser_com.write(command + "\n")
         response_msg = self.ser_com.readline()
         print "response Msg:" + response_msg
@@ -29,6 +30,7 @@ class MotorControl:
         raise Exception("Grbl command" + command + "failed, received response msg:" + response_msg)
 
     def get_command(self, command):
+        print "get_command: ", command
         self.ser_com.write(command + "\n")
         return self.ser_com.readline().rstrip()
 

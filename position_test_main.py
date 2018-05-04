@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
     mc.drive_x(20, 5000)
     while 1:
-        time.sleep(0.2)
+        time.sleep(0.5)
         try:
             alpha_ = arduino.getRawAlpha()
             beta_ = arduino.getRawBeta()
