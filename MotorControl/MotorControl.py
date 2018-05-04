@@ -3,7 +3,7 @@ import time
 
 
 class MotorControl:
-    def __init__(self, x0, z0, com="COM5", baud=115200):
+    def __init__(self, x0, z0, com, baud=115200):
         self.x0 = x0
         self.z0 = z0
         self.ser_com = None
