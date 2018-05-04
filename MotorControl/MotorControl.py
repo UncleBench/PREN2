@@ -42,7 +42,9 @@ class MotorControl:
         Returns:
             tuple: (String: state, Dictonary: Position ("x", "y", "z"))
         """
-        response = self.get_command("?")
+        response = ""
+        while ("<" not in response) or (">" not in response):
+            response = self.get_command("?")
         print "resonse: ", response
         start = response.index("<") + 1
         stop = response.index(">", start)
