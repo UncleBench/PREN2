@@ -59,7 +59,7 @@ class MotorControl:
                 m_pos['z'] = float(super_sub_str.split(",")[2])
         return state, m_pos
 
-    def drive(self, x=None, z=None, camera=None, speed=10000):
+    def drive(self, x=None, z=None, camera=None, speed=1000):
         """this method lets the motors drive with the given position and speed
             Args:
                 x (float) : distance to drive in x-direction
