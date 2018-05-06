@@ -82,7 +82,7 @@ class MotorControl:
     def stop(self):
         """stops the motors from moving
         """
-        command = "~"
+        command = "!"
         self.set_command(command)
 
     def drive_x(self, distance, speed):
