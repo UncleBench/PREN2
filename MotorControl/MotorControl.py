@@ -3,9 +3,7 @@ import time
 
 
 class MotorControl:
-    def __init__(self, x0, z0, com, baud=115200):
-        self.x0 = x0
-        self.z0 = z0
+    def __init__(self, com, baud=115200):
         self.ser_com = None
         self.init_communication(com, baud)
 
@@ -104,6 +102,6 @@ class MotorControl:
 
 
 if __name__ == '__main__':
-    mc = MotorControl(0, 0)
+    mc = MotorControl()
     mc.drive(x=10, z=2.2, speed=10)
     print mc.get_pos_decoded()

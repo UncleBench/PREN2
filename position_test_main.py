@@ -5,7 +5,7 @@ import time
 
 if __name__ == '__main__':
     arduino = SerialCommunication.SerialCommunication('/dev/SensorActor', 9600)
-    mc = MotorControl.MotorControl(0, 0, com='/dev/Motor')
+    mc = MotorControl.MotorControl(com='/dev/Motor')
 
     posSensor = PosSensor.PosSensor()
 

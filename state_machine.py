@@ -17,7 +17,7 @@ class Prachtstueck():
         self.arduino = None #SerialCommunication('COM3', 9600)
 
         print("Arduino Motorensteuerung initialisieren und kalibrieren")
-        self.motor_control = MotorControl(0, 0)
+        self.motor_control = MotorControl()
 
         print("Kamera auf 20 Grad setzen")
         self.motor_control.set_camera(20)

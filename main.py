@@ -19,7 +19,7 @@ if __name__ == '__main__':
     arduino = SerialCommunication('COM3', 9600)
 
     print("Arduino Motorensteuerung initialisieren und kalibrieren")
-    motor_control = MotorControl(0,0)
+    motor_control = MotorControl()
 
     print("Kamera auf 20 Grad setzen")
     motor_control.set_camera(20)
