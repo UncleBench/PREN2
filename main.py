@@ -22,7 +22,7 @@ if __name__ == '__main__':
     motor_control = MotorControl(0,0)
 
     print("Kamera auf 20 Grad setzen")
-    motor_control.move_camera(20)
+    motor_control.set_camera(20)
 
     print("Programm für Vision starten")
     # construct the argument parse and parse the arguments

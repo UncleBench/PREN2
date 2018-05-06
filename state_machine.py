@@ -20,7 +20,7 @@ class Prachtstueck():
         self.motor_control = MotorControl(0, 0)
 
         print("Kamera auf 20 Grad setzen")
-        self.motor_control.move_camera(20)
+        self.motor_control.set_camera(20)
 
         print("Programm fuer Vision starten")
         # construct the argument parse and parse the arguments

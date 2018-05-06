@@ -59,12 +59,11 @@ class MotorControl:
                 m_pos['z'] = float(super_sub_str.split(",")[2])
         return state, m_pos
 
-    def drive(self, x=None, z=None, camera=None, speed=1000):
+    def drive(self, x=None, z=None, speed=1000):
         """this method lets the motors drive with the given position and speed
             Args:
                 x (float) : distance to drive in x-direction
                 z (float) : distance to drive in z-direction
-                camera (float) :  angle of how far to rotate the camera
                 speed (int) : speed of the driven motors
 
             Returns:
@@ -75,8 +74,6 @@ class MotorControl:
             command += " X" + str(x)
         if z is not None:
             command += " Z" + str(z)
-        if camera is not None:
-            command += " Y" + str(camera)
         if speed is not None:
             command += "F" + str(speed)
 
@@ -98,11 +95,15 @@ class MotorControl:
         distance = self.get_pos_decoded()[1]
         return distance
 
-    def move_camera(self, deg):
-        self.drive(camera=deg, speed=100)
+    def set_camera(self, deg):
+        if 0 <= deg <= 135:
+            command = '$J=G90G21Y' + str(deg) + 'F100000'
+            self.set_command(command)
+        else:
+            raise ValueError('Valid camera angle range is 0 to 135 degrees')
 
 
 if __name__ == '__main__':
     mc = MotorControl(0, 0)
-    mc.drive(x=10, z=2.2, camera=0.123, speed=10)
+    mc.drive(x=10, z=2.2, speed=10)
     print mc.get_pos_decoded()
