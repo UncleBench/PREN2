@@ -36,6 +36,9 @@ class MotorControl:
         self.ser_com.write(command)
         return self.ser_com.readline().rstrip()
 
+    def home(self):
+        self.set_command('$H')
+        
     def get_pos_decoded(self):
         """returns decoded states of the motors
         Args:
@@ -102,6 +105,7 @@ class MotorControl:
 
 
 if __name__ == '__main__':
-    mc = MotorControl()
+    mc = MotorControl(com='/dev/Motor')
+    mc.home()
     mc.drive(x=10, z=2.2, speed=10)
     print mc.get_pos_decoded()
