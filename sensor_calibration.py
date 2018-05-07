@@ -37,9 +37,7 @@ def sensor_calibration(new_file, n_meas):
             if set(json_parsed.keys()) == set(calibrated_val.keys()):
                 calibrated_val = json_parsed
 
-    result = {'raw_alpha', 'raw_beta'}
-    result['raw_alpha'] = []
-    result['raw_beta'] = []
+    result = {'raw_alpha': [], 'raw_beta':[]}
     for i in range(1, n_meas, 1):
         sleep(0.5)
         result['raw_alpha'] += [arduino.getRawAlpha()]
