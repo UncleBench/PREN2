@@ -15,7 +15,7 @@ class StopState:
 
 class SerialCommunication:
 
-    def __init__(self, com, baud=9600):
+    def __init__(self, com, baud=115200):
         """
         Args:
             com (String): Arduino Comport
