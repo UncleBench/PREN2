@@ -27,6 +27,7 @@ class MotorControl:
         if "ok" in response_msg:
             return
         if "[MSG:Caution: Unlocked]" in response_msg:
+            self.ser_com.readline()
             return
         if "error" in response_msg:
             raise Exception("Grbl command" + command + " failed, " + response_msg)
