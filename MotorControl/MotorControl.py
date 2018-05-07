@@ -20,6 +20,8 @@ class MotorControl:
 
         if "[MSG:'$H'|'$X' to unlock]" in self.ser_com.readline():
             self.set_command("$X\n")
+            self.ser_com.readline()
+            self.ser_com.readline()
 
     def set_command(self, command):
         self.ser_com.write(command + "\n")
