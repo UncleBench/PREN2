@@ -44,8 +44,8 @@ def sensor_calibration(new_file, n_meas):
         result['raw_beta'] += [arduino.getRawAlpha()]
         print(result['raw_alpha'], ";", result['raw_beta'])
 
-    calibrated_val["raw_alpha_0"] += median(result['raw_alpha'])
-    calibrated_val["raw_alpha_0"] += median(result['raw_alpha'])
+    calibrated_val["raw_alpha_0"] += [median(result['raw_alpha'])]
+    calibrated_val["raw_beta_0"] += [median(result['raw_beta'])]
     print "raw_alpha_0", calibrated_val["raw_alpha_0"]
     calibrated_val["raw_alpha_0_avg"] = int(mean(calibrated_val["raw_alpha_0"]) + 0.5)
     calibrated_val["raw_beta_0_avg"] = int(mean(calibrated_val["raw_beta_0"]) + 0.5)
