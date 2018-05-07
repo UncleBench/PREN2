@@ -1,4 +1,5 @@
 from numpy import *
+import json
 
 
 class Position:
@@ -89,6 +90,8 @@ class AngleSensor:
 class PosSensor:
     def __init__(self, platform=None, prachtstueck=None, alpha_sensor=None, beta_sensor=None):
         self.platform = platform
+        with open('sensor_cal_data.cal', 'r') as file:
+            json_parsed = json.loads(file.read())
         if self.platform is None:
             self.platform = Platform()
         self.prachtstueck_dim = prachtstueck
@@ -96,10 +99,10 @@ class PosSensor:
             self.prachtstueck_dim = PrachtstueckDimensions(10.0, 10.0)
         self.alpha_sensor = alpha_sensor
         if self.alpha_sensor is None:
-            self.alpha_sensor = AngleSensor(2109.0, 0.001091)
+            self.alpha_sensor = AngleSensor(json_parsed["raw_alpha_0_avg"], 0.001091)
         self.beta_sensor = beta_sensor
         if self.beta_sensor is None:
-            self.beta_sensor = AngleSensor(2489.0, -0.001091)
+            self.beta_sensor = AngleSensor(json_parsed["raw_beta_0_avg"], -0.001091)
 
     def get_pos_prachtstueck(self, raw_alpha, raw_beta, driven_rope_distance):
         """calculates and returns the position of the "Prachtstueck" (shaft of the elevator motor; not the load!!!)
