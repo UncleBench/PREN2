@@ -72,9 +72,9 @@ class MotorControl:
         """
         command = "$J=G91 G21"
         if x is not None:
-            command += " X" + str(x
+            command += " X" + str(x)
         if z is not None:
-            command += " Z" + str(z))
+            command += " Z" + str(z)
         if camera is not None:
             command += " Y" + str(camera)
         if speed is not None:
