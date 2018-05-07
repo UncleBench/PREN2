@@ -1,30 +1,9 @@
 #!/usr/bin/python
-import sys, argparse
 from Communication import SerialCommunication
 from numpy import median, mean
 from time import sleep
 import json
-
-def arg_parser(argv):
-    new_file = True
-    n_meas = 10
-    try:
-        opts, args = getopt.getopt(argv,"hi:n:",["newfile=","nMeasurements="])
-    except getopt.GetoptError:
-        print 'sensor_calibration.py <-new/-add> -n <nMeasurements>'
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt == '-h':
-            print 'sensor_calibration.py <-new/-add> -n <nMeasurements>'
-            sys.exit()
-        elif opt in ("-new", "-add"):
-            if opt in "-new":
-                new_file = True
-            elif opt in "-add":
-                new_file = False
-            elif opt in "-n":
-                n_meas = int(arg)
-    return new_file, n_meas
+import argparse
 
 
 def sensor_calibration(new_file, n_meas):
@@ -47,8 +26,8 @@ def sensor_calibration(new_file, n_meas):
         result['raw_beta'] += [raw_beta]
         print('ralpha:{:4d}; rbeta:{:4d}'.format(raw_alpha, raw_beta))
 
-    calibrated_val["raw_alpha_0"] += [median(result['raw_alpha'])]
-    calibrated_val["raw_beta_0"] += [median(result['raw_beta'])]
+    calibrated_val["raw_alpha_0"] += [int(median(result['raw_alpha']))]
+    calibrated_val["raw_beta_0"] += [int(median(result['raw_beta']))]
     calibrated_val["raw_alpha_0_avg"] = int(mean(calibrated_val["raw_alpha_0"]) + 0.5)
     calibrated_val["raw_beta_0_avg"] = int(mean(calibrated_val["raw_beta_0"]) + 0.5)
 
@@ -62,12 +41,19 @@ def sensor_calibration(new_file, n_meas):
 
 
 if __name__ == "__main__":
-    #print sys.argv
-    #parser = argparse.ArgumentParser(description='Process some integers.')
-    #parser.add_argument('-a', action="store_true", default=False)
-    #parser.add_argument('-b', action="store", dest="b")
-    #parser.add_argument('-c', action="store", dest="c", type=int)
-    #args =parser.parse_args([ '--noarg', '--witharg', 'val', '--witharg2=3' ])
-    #print args
-    #new_file, n_meas = arg_parser(sys.argv[1:])
-    sensor_calibration(False, 15)
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-n', action='store',
+                        default=10,
+                        dest='n_meas',
+                        help='excecute n calibration measurements',
+                        type=int)
+
+    parser.add_argument('-new', action='store_true',
+                        default=False,
+                        dest='new_file',
+                        help='create a new config file')
+
+    results = parser.parse_args()
+
+    sensor_calibration(results.new_file, results.n_meas)
