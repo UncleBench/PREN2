@@ -28,7 +28,8 @@ def arg_parser(argv):
 
 
 def sensor_calibration(new_file, n_meas):
-    print "test"
+    with open('sensor_cal_data.cal', 'r') as file:
+        print 'parsed json', json.loads(file.read())
     arduino = SerialCommunication.SerialCommunication('/dev/SensorActor')
     calibrated_val = {"raw_alpha_0": [], "raw_beta_0": [], "raw_alpha_0_avg": 0, "raw_beta_0_avg": 0}
     if not new_file:
@@ -40,13 +41,14 @@ def sensor_calibration(new_file, n_meas):
     result = {'raw_alpha': [], 'raw_beta':[]}
     for i in range(1, n_meas, 1):
         sleep(0.5)
-        result['raw_alpha'] += [arduino.getRawAlpha()]
-        result['raw_beta'] += [arduino.getRawAlpha()]
-        print(result['raw_alpha'], ";", result['raw_beta'])
+        raw_alpha = arduino.getRawAlpha()
+        raw_beta = arduino.getRawAlpha()
+        result['raw_alpha'] += [raw_alpha]
+        result['raw_beta'] += [raw_beta]
+        print('ralpha:{:4d}; rbeta:{:4d}'.format(raw_alpha, raw_beta))
 
     calibrated_val["raw_alpha_0"] += [median(result['raw_alpha'])]
     calibrated_val["raw_beta_0"] += [median(result['raw_beta'])]
-    print "raw_alpha_0", calibrated_val["raw_alpha_0"]
     calibrated_val["raw_alpha_0_avg"] = int(mean(calibrated_val["raw_alpha_0"]) + 0.5)
     calibrated_val["raw_beta_0_avg"] = int(mean(calibrated_val["raw_beta_0"]) + 0.5)
 
