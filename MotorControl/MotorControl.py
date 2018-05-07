@@ -36,9 +36,7 @@ class MotorControl:
 
     def get_command(self, command):
         self.ser_com.write(command)
-        response = self.ser_com.readline()
-        print response
-        return response.rstrip()
+        return self.ser_com.readline().rstrip()
 
     def get_pos_decoded(self):
         """returns decoded states of the motors
@@ -49,6 +47,7 @@ class MotorControl:
             tuple: (String: state, Dictonary: Position ("x", "y", "z"))
         """
         response = self.get_command("?")
+        print response
         start = response.index("<") + 1
         stop = response.index(">", start)
         state = response[start:stop].split("|")[0]
