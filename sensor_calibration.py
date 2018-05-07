@@ -52,6 +52,11 @@ def sensor_calibration(new_file, n_meas):
     calibrated_val["raw_alpha_0_avg"] = int(mean(calibrated_val["raw_alpha_0"]) + 0.5)
     calibrated_val["raw_beta_0_avg"] = int(mean(calibrated_val["raw_beta_0"]) + 0.5)
 
+    print('-----------------------')
+    print('a_med: {:4d}; b_med {:4d}'.format(calibrated_val["raw_alpha_0"][-1], calibrated_val["raw_beta_0"][-1]))
+    print('a_mean:{:4d}; b_mean{:4d}'.format(calibrated_val["raw_alpha_0_avg"], calibrated_val["raw_beta_0_avg"]))
+    print('-----------------------')
+
     with open('sensor_cal_data.cal', 'w') as file:
         file.write(json.dumps(calibrated_val))
 
