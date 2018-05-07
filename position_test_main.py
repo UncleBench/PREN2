@@ -4,7 +4,7 @@ from PositionDetermination import PosSensor
 import time
 
 if __name__ == '__main__':
-    arduino = SerialCommunication.SerialCommunication('/dev/SensorActor', 9600)
+    arduino = SerialCommunication.SerialCommunication('/dev/SensorActor')
     mc = MotorControl.MotorControl(com='/dev/Motor')
 
     posSensor = PosSensor.PosSensor()
