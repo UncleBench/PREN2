@@ -47,7 +47,7 @@ class MotorControl:
             tuple: (String: state, Dictonary: Position ("x", "y", "z"))
         """
         response = self.get_command("?")
-        print response
+        print "response: ", response
         start = response.index("<") + 1
         stop = response.index(">", start)
         state = response[start:stop].split("|")[0]
@@ -58,7 +58,7 @@ class MotorControl:
                 m_pos['x'] = float(super_sub_str.split(",")[0])
                 m_pos['y'] = float(super_sub_str.split(",")[1])
                 m_pos['z'] = float(super_sub_str.split(",")[2])
-
+        print "m_pos: ", m_pos
         return state, m_pos
 
     def drive(self, x=None, z=None, camera=None, speed=10000):
