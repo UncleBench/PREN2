@@ -42,7 +42,7 @@ def sensor_calibration(new_file, n_meas):
     for i in range(1, n_meas, 1):
         sleep(0.5)
         raw_alpha = arduino.getRawAlpha()
-        raw_beta = arduino.getRawAlpha()
+        raw_beta = arduino.getRawBeta()
         result['raw_alpha'] += [raw_alpha]
         result['raw_beta'] += [raw_beta]
         print('ralpha:{:4d}; rbeta:{:4d}'.format(raw_alpha, raw_beta))
@@ -65,4 +65,4 @@ if __name__ == "__main__":
     #args =parser.parse_args([ '--noarg', '--witharg', 'val', '--witharg2=3' ])
     #print args
     #new_file, n_meas = arg_parser(sys.argv[1:])
-    sensor_calibration(True, 10)
+    sensor_calibration(False, 15)
