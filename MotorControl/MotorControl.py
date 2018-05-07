@@ -47,18 +47,16 @@ class MotorControl:
             tuple: (String: state, Dictonary: Position ("x", "y", "z"))
         """
         response = self.get_command("?")
-        print "response: ", response
         start = response.index("<") + 1
         stop = response.index(">", start)
         state = response[start:stop].split("|")[0]
         m_pos = {}
         for sub_str in response[start:stop].split("|"):
-            if sub_str.split(":")[0] == "MPos":
+            if sub_str.split(":")[0] == "WPos":
                 super_sub_str = sub_str.split(":")[1]
                 m_pos['x'] = float(super_sub_str.split(",")[0])
                 m_pos['y'] = float(super_sub_str.split(",")[1])
                 m_pos['z'] = float(super_sub_str.split(",")[2])
-        print "m_pos: ", m_pos
         return state, m_pos
 
     def drive(self, x=None, z=None, camera=None, speed=10000):
@@ -74,9 +72,9 @@ class MotorControl:
         """
         command = "$J=G91 G21"
         if x is not None:
-            command += " X" + str(x)
+            command += " X" + str(x
         if z is not None:
-            command += " Z" + str(z)
+            command += " Z" + str(z))
         if camera is not None:
             command += " Y" + str(camera)
         if speed is not None:
