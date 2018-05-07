@@ -7,8 +7,6 @@ import argparse
 
 
 def sensor_calibration(new_file, n_meas):
-    with open('sensor_cal_data.cal', 'r') as file:
-        print 'parsed json', json.loads(file.read())
     arduino = SerialCommunication.SerialCommunication('/dev/SensorActor')
     calibrated_val = {"raw_alpha_0": [], "raw_beta_0": [], "raw_alpha_0_avg": 0, "raw_beta_0_avg": 0}
     if not new_file:
@@ -18,7 +16,7 @@ def sensor_calibration(new_file, n_meas):
                 calibrated_val = json_parsed
 
     result = {'raw_alpha': [], 'raw_beta':[]}
-    for i in range(1, n_meas, 1):
+    for i in range(0, n_meas, 1):
         sleep(0.5)
         raw_alpha = arduino.getRawAlpha()
         raw_beta = arduino.getRawBeta()
