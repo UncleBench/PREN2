@@ -27,7 +27,6 @@ class MotorControl:
         if "ok" in response_msg:
             return
         if "[MSG:Caution: Unlocked]" in response_msg:
-            self.ser_com.readline()
             return
         if "error" in response_msg:
             raise Exception("Grbl command" + command + " failed, " + response_msg)
@@ -35,7 +34,9 @@ class MotorControl:
 
     def get_command(self, command):
         self.ser_com.write(command)
-        return self.ser_com.readline().rstrip()
+        response = self.ser_com.readline()
+        print response
+        return response.rstrip()
 
     def get_pos_decoded(self):
         """returns decoded states of the motors
