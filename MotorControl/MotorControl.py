@@ -27,6 +27,7 @@ class MotorControl:
             raise Exception("Grbl command" + command + " failed, " + response_msg)
         if "[MSG:'$H'|'$X' to unlock]" in response_msg:
             if rec_prot is not True:
+                time.sleep(.5)
                 self.set_command('$X', rec_prot=True)
                 self.set_command(command, rec_prot=True)
                 return
