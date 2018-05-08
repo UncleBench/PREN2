@@ -24,8 +24,8 @@ def sensor_calibration(new_file, n_meas, meas_sens, z_pos, s_length):
     result = {'raw_alpha': [], 'raw_beta':[]}
     for i in range(0, n_meas, 1):
         sleep(0.5)
-        raw_alpha = raw_alpha = arduino.getRawAlpha()
-        raw_beta = raw_beta = arduino.getRawBeta()
+        raw_alpha = arduino.getRawAlpha()
+        raw_beta = arduino.getRawBeta()
         result['raw_alpha'] += [raw_alpha]
         result['raw_beta'] += [raw_beta]
         print('ralpha:{:4d}; rbeta:{:4d}'.format(raw_alpha, raw_beta))
@@ -41,7 +41,7 @@ def sensor_calibration(new_file, n_meas, meas_sens, z_pos, s_length):
         print('a_mean:{:4d}; b_mean{:4d}'.format(calibrated_val["raw_alpha_0_avg"], calibrated_val["raw_beta_0_avg"]))
         print('-----------------------')
     else:
-        sensitivity = 0.0005
+        sensitivity = 0.002
         interval = sensitivity
         for k in range(0, 100, 1):
             alphaSensor = PosSensor.AngleSensor(calibrated_val["raw_alpha_0_avg"], sensitivity)
