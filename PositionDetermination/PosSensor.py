@@ -90,8 +90,9 @@ class AngleSensor:
 class PosSensor:
     def __init__(self, platform=None, prachtstueck=None, alpha_sensor=None, beta_sensor=None):
         self.platform = platform
-        with open('sensor_cal_data.cal', 'r') as file:
-            json_parsed = json.loads(file.read())
+        if alpha_sensor is None or beta_sensor is None:
+            with open('sensor_cal_data.cal', 'r') as file:
+                json_parsed = json.loads(file.read())
         if self.platform is None:
             self.platform = Platform()
         self.prachtstueck_dim = prachtstueck
@@ -104,12 +105,12 @@ class PosSensor:
         if self.beta_sensor is None:
             self.beta_sensor = AngleSensor(json_parsed["raw_beta_0_avg"], -json_parsed["sensitivity_avg"])   #-0.001091)
 
-    def get_pos_prachtstueck(self, raw_alpha, raw_beta, driven_rope_distance):
+    def get_pos_prachtstueck(self, raw_alpha, raw_beta, dist_to_drive):
         """calculates and returns the position of the "Prachtstueck" (shaft of the elevator motor; not the load!!!)
         Args:
             raw_alpha (int): raw ADC value of the alpha angle sensor
             raw_beta (int): raw ADC value of the beta angle sensor
-            driven_rope_distance (float): driven distance on the rope in [cm]
+            dist_to_drive (float): distance to drive on the rope [cm]
 
         Returns:
             Position: x and z Position of the "Prachtstueck" (shaft of the elevator motor)
@@ -121,12 +122,12 @@ class PosSensor:
 
         gamma = pi - alpha - beta
         ds = self.prachtstueck_dim.d * sin(beta) / sin(gamma)
-        s_tot = driven_rope_distance + ds
+        s_tot = dist_to_drive + ds
         delta = arcsin(sin(gamma) * s_tot/self.platform.rope_length)
         epsilon = pi - gamma - delta
         eta = zeta - epsilon
-        p = driven_rope_distance * sin(eta)
-        q = driven_rope_distance * cos(eta)
+        p = dist_to_drive * sin(eta)
+        q = dist_to_drive * cos(eta)
         theta = pi/2 - eta - alpha
 
         position.x = self.platform.k - p - (self.prachtstueck_dim.u * cos(theta) - self.prachtstueck_dim.v * sin(theta))
@@ -134,18 +135,18 @@ class PosSensor:
 
         return position
 
-    def get_pos_load_by_raw(self, raw_alpha, raw_beta, driven_rope_distance, elevator_distance):
+    def get_pos_load_by_raw(self, raw_alpha, raw_beta, dist_to_drive, elevator_distance):
         """returns position of the load
         Args:
             raw_alpha (int): raw ADC value of the alpha angle sensor
             raw_beta (int): raw ADC value of the beta angle sensor
-            driven_rope_distance (float): driven distance on the rope in [cm]
+            dist_to_drive (float): distance to drive on the rope [cm]
             elevator_distance (float): driven distance on the z axis in [cm]
 
         Returns:
             Position: x and z Position of the "Load"
         """
-        return self.get_pos_load_rel(self.get_pos_prachtstueck(raw_alpha, raw_beta, driven_rope_distance),
+        return self.get_pos_load_rel(self.get_pos_prachtstueck(raw_alpha, raw_beta, dist_to_drive),
                                      elevator_distance)
 
     def get_pos_load_rel(self, pos_prachtstueck, elevator_distance):
