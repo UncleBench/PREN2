@@ -1,11 +1,7 @@
-from transitions import Machine
 from Vision.Vision import Vision
-from Vision.Target import Target
-from Communication import SerialCommunication
-from PositionDetermination import PosSensor
-from MotorControl.MotorControl import MotorControl
+from MessageQueue.MessageQueue import MessageQueue
+from Communication.Communication import Communication
 from transitions.extensions import GraphMachine as Machine
-import threading
 import argparse
 
 class Prachtstueck():
@@ -14,13 +10,10 @@ class Prachtstueck():
 
     def on_enter_init(self):
         print("Kommunikation Arduino Greifer, Whisker, Position, Batterie Raspi initialisieren")
-        self.arduino = None #SerialCommunication('COM3', 9600)
 
         print("Arduino Motorensteuerung initialisieren und kalibrieren")
-        self.motor_control = MotorControl()
 
         print("Kamera auf 20 Grad setzen")
-        self.motor_control.set_camera(20)
 
         print("Programm fuer Vision starten")
         # construct the argument parse and parse the arguments
@@ -74,7 +67,26 @@ class Prachtstueck():
     def on_enter_shutdown(self):
         print("Stop")
 
+
+class Parser():
+    def __init__(self, state_machine):
+        self.state_machine = state_machine
+
+    def interpret_command(self, msg):
+        if msg.command is "Position":
+            print "Position:", msg.data
+
+        #if command is "wake_up":
+        #    self.state_machine.wake_up()
+        #elif command is "init_finished":
+        #    self.state_machine.init_finished()
+        #elif command is "start":
+        #    self.state_machine.start()
+        #else:
+        #    print "Can't parse command: ", command
+
 if __name__ == '__main__':
+    # arg parser for camera
     ap = argparse.ArgumentParser()
     ap.add_argument("-p", "--picamera", type=int, default=-1,
                     help="whether or not the Raspberry Pi camera should be used")
@@ -100,11 +112,26 @@ if __name__ == '__main__':
         {'trigger': 'stop_btn_pushed', 'source': 'slow_to_stop', 'dest': 'shutdown'},
     ]
 
-    prachtstueck = Prachtstueck(args["picamera"])
-    machine = Machine(prachtstueck, states=states, transitions=transitions, initial='sleep')
-    prachtstueck.wake_up()
-    prachtstueck.init_finished()
-    prachtstueck.start()
-    print prachtstueck.state
+    # init state machine
+    prachtstueck = Prachtstueck()
+
+    # init Parser
+    parser = Parser(prachtstueck)
+
+    # init Message Queue
+    #msg_queue = MessageQueue(callback=parser.interpret_command)
+
+    # init Vision
+    #vision = Vision(call)
+
+    # init Communication
+    communication = Communication(sens_act_com='/dev/SensorActor', motor_com='/dev/Motor')
+
+    #prachtstueck = Prachtstueck(args["picamera"])
+    #machine = Machine(prachtstueck, states=states, transitions=transitions, initial='sleep')
+    #prachtstueck.wake_up()
+    #prachtstueck.init_finished()
+    #prachtstueck.start()
+    #print prachtstueck.state
     # create Graph -> graphviz needed!
     #prachtstueck.get_graph().draw('my_state_diagram.png', prog='dot')
