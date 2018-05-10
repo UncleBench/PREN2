@@ -26,8 +26,15 @@ class SerialCommunication:
         """
         self.ser = serial.Serial(com, baud)
         self.ser.timeout = 5    # first timeout 5s (due to startup time of the Arduino)
-        if(self.ser.readline().rstrip() != "<Arduino is ready>"):
-            raise CommException("Connection Failed")
+        initial_respone = self.ser.readline().rstrip()
+        if not "<Arduino is ready>" in initial_respone:
+            if initial_respone == "":
+                try:
+                    self.getCommand(self, "GS")
+                except CommException:
+                    raise CommException("Connection Failed")
+            else:
+                raise CommException("Connection Failed")
         self.ser.timeout = 0.5  # then 0.5s
 
 
