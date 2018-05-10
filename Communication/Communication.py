@@ -17,6 +17,7 @@ class Communication():
         self.worker.start()
 
     def initiate_communication(self):
+        print "start Communication Process"
         setproctitle("Communication")
         #self.main_queue = MessageQueue(callback=self.command_interpreter, qname='main')
         self.main_queue = MessageQueue(callback=None, qname='main')
@@ -28,6 +29,7 @@ class Communication():
         self.position_thread.start()
 
     def update_position(self):
+        print "start position update thread"
         while True:
             sleep(1)
             self.sens_act_lock.aquire()

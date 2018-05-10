@@ -110,20 +110,24 @@ if __name__ == '__main__':
         {'trigger': 'drive_finished', 'source': 'fast_to_stop', 'dest': 'slow_to_stop'},
         {'trigger': 'stop_btn_pushed', 'source': 'slow_to_stop', 'dest': 'shutdown'},
     ]
+    print "init state machine"
     prachtstueck = Prachtstueck()
     machine = Machine(prachtstueck, states=states, transitions=transitions, initial='sleep')
 
     # init Parser
+    print "init Parser"
     parser = Parser(prachtstueck)
 
-    # init Message Queue
+    print "init Message Queue"
     #msg_queue = MessageQueue(callback=parser.interpret_command)
     main_queue = MessageQueue(qname='main', callback=parser.interpret_command)
 
     # init Vision
+    print "init Vision"
     vision = Vision(callback=parser.interpret_command, usePiCamera=True, debug=False)
 
     # init Communication
+    print "init Communication"
     communication = Communication(sens_act_com='/dev/SensorActor', motor_com='/dev/Motor')
 
     #prachtstueck = Prachtstueck(args["picamera"])
