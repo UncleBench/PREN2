@@ -8,7 +8,8 @@ class MessageQueue(object):
         self.sender = Connection('amqp://').SimpleBuffer(self.qname)
         if receive:
             self.receiver = Connection('amqp://').SimpleBuffer(self.qname)
-            self.worker = Thread(target=self.receive, name='MQ'+self.qname, args=(callback,))
+            self.worker = Thread(target=self.receive, name='MQ'+self.qname,
+                                 args=(callback,))
             self.worker.start()
             self.worker.join()
 

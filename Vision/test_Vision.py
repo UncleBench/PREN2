@@ -2,8 +2,8 @@ from Vision import Vision
 from imutils.video import FPS
 
 
-def foo(bar):
-    print bar['cmd']
+def foo(message):
+    print message.command
 
 if __name__ == '__main__':
-    vision = Vision(callback=foo, usePiCamera=True, debug=False)
+    vision = Vision(callback=foo, usePiCamera=False, debug=False)
