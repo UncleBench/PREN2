@@ -1,5 +1,6 @@
 from kombu import Connection
 from threading import Thread
+import json
 
 class MessageQueue(object):
     def __init__(self, qname, callback=None):
@@ -29,7 +30,16 @@ class MessageQueue(object):
         self.send('__QX')
         self.sender.close()
 
-class Message():
-    def __init__(self, command, data):
+class Message(object):
+    def __new__(cls, *args, **kwargs):
+        msg = super(Message, cls).__new__(cls)
+        msg.__init__(*args, **kwargs)
+        return msg.__dict__
+        
+    def __init__(self, command, data=None):
         self.command = command
-        self.data = data
+        try:
+            json.dumps(data)
+            self.data = data
+        except TypeError:
+            self.data = data.__dict__
