@@ -30,7 +30,7 @@ class SerialCommunication:
         if not "<Arduino is ready>" in initial_respone:
             if initial_respone == "":
                 try:
-                    self.getCommand(self, "GS")
+                    self.getCommand("GS")
                 except CommException:
                     raise CommException("Connection Failed")
             else:
