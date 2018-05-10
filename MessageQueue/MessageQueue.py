@@ -2,11 +2,11 @@ from kombu import Connection
 from threading import Thread
 
 class MessageQueue(object):
-    def __init__(self, qname, receive=False, callback=None):
+    def __init__(self, qname, callback=None):
         self.active = True
         self.qname = qname
         self.sender = Connection('amqp://').SimpleBuffer(self.qname)
-        if receive:
+        if not callback is None:
             self.receiver = Connection('amqp://').SimpleBuffer(self.qname)
             self.worker = Thread(target=self.receive, name='MQ'+self.qname,
                                  args=(callback,))
