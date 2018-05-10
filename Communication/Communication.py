@@ -34,14 +34,14 @@ class Communication():
         print "start position update thread"
         while True:
             sleep(1)
-            self.sens_act_lock.aquire()
+            self.sens_act_lock.acquire()
             raw_alpha = self.sens_act.getRawAlpa()
             raw_beta = self.sens_act.getRawBeta()
             battery_voltage = self.sens_act.getBatteryVoltage()
             self.sens_act_lock.release()
             print "sens act lock passed"
 
-            self.motor_lock.aquire()
+            self.motor_lock.acquire()
             #driven_dist = self.motor.get_distance_driven()
             driven_dist = {'x': 20.0, 'z': 20.0}
             self.motor_lock.release()
