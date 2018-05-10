@@ -5,8 +5,8 @@ from transitions.extensions import GraphMachine as Machine
 import argparse
 
 class Prachtstueck():
-    def __init__(self, usePiCamera = 0):
-        self.usePiCamera = usePiCamera
+    def __init__(self):
+        pass
 
     def on_enter_init(self):
         print("Kommunikation Arduino Greifer, Whisker, Position, Batterie Raspi initialisieren")
@@ -73,9 +73,12 @@ class Parser():
         self.state_machine = state_machine
 
     def interpret_command(self, msg):
-        if msg.command is "Position":
+        if msg.command is 'Position':
             print "Position:", msg.data
-
+        elif msg.command is 'target_found':
+            print "target centered"
+        elif msg.command is 'target_centered':
+            print "target centered"
         #if command is "wake_up":
         #    self.state_machine.wake_up()
         #elif command is "init_finished":
@@ -86,11 +89,6 @@ class Parser():
         #    print "Can't parse command: ", command
 
 if __name__ == '__main__':
-    # arg parser for camera
-    ap = argparse.ArgumentParser()
-    ap.add_argument("-p", "--picamera", type=int, default=-1,
-                    help="whether or not the Raspberry Pi camera should be used")
-    args = vars(ap.parse_args())
 
     # initiate state machine
     states = ['sleep', 'init', 'wait_for_start', 'to_load', 'insert_load', 'grab_load', 'lift_load', 'to_target',
@@ -111,9 +109,8 @@ if __name__ == '__main__':
         {'trigger': 'drive_finished', 'source': 'fast_to_stop', 'dest': 'slow_to_stop'},
         {'trigger': 'stop_btn_pushed', 'source': 'slow_to_stop', 'dest': 'shutdown'},
     ]
-
-    # init state machine
     prachtstueck = Prachtstueck()
+    machine = Machine(prachtstueck, states=states, transitions=transitions, initial='sleep')
 
     # init Parser
     parser = Parser(prachtstueck)
@@ -122,13 +119,12 @@ if __name__ == '__main__':
     #msg_queue = MessageQueue(callback=parser.interpret_command)
 
     # init Vision
-    #vision = Vision(call)
+    vision = Vision(callback=parser.interpret_command, usePiCamera=True, debug=False)
 
     # init Communication
     communication = Communication(sens_act_com='/dev/SensorActor', motor_com='/dev/Motor')
 
     #prachtstueck = Prachtstueck(args["picamera"])
-    #machine = Machine(prachtstueck, states=states, transitions=transitions, initial='sleep')
     #prachtstueck.wake_up()
     #prachtstueck.init_finished()
     #prachtstueck.start()
