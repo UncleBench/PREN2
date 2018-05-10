@@ -35,7 +35,7 @@ class Communication():
         while True:
             sleep(1)
             self.sens_act_lock.acquire()
-            raw_alpha = self.sens_act.getRawAlpa()
+            raw_alpha = self.sens_act.getRawAlpha()
             raw_beta = self.sens_act.getRawBeta()
             battery_voltage = self.sens_act.getBatteryVoltage()
             self.sens_act_lock.release()
