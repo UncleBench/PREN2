@@ -30,6 +30,7 @@ class SerialCommunication:
             raise CommException("Connection Failed")
         self.ser.timeout = 0.5  # then 0.5s
 
+
     def setCommand(self, command):
         """executes a setCommand on the serial interface
         Args:
