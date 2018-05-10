@@ -1,6 +1,6 @@
 from MessageQueue.MessageQueue import MessageQueue, Message
-from Communication.SerialCommunication import SerialCommunication
-from Communication.MotorControl import MotorControl
+from SerialCommunication import SerialCommunication
+from MotorControl import MotorControl
 from PositionDetermination.PosSensor import PosSensor
 from multiprocessing import Process
 from threading import Thread, RLock
