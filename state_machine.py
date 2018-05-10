@@ -76,7 +76,7 @@ class Parser():
         if msg.command is 'Position':
             print "Position:", msg.data
         elif msg.command is 'target_found':
-            print "target centered"
+            print "target found"
         elif msg.command is 'target_centered':
             print "target centered"
         #if command is "wake_up":
