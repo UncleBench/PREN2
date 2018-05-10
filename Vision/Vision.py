@@ -26,7 +26,8 @@ class Vision(object):
         # output
         self.target = None
 
-        self.worker = Process(target=self.capture, name='VisionProcess', args=(callback,))
+        self.worker = Process(target=self.capture, name='VisionProcess',
+                              args=(callback,))
         self.worker.start()
         self.worker.join()
 
@@ -60,26 +61,29 @@ class Vision(object):
             # cv2.imshow('Edge image', edge)
 
             # find contours
-            _, cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+            _, cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
+                                                  cv2.CHAIN_APPROX_SIMPLE)
 
             # flatten hierarchy array
             hierarchy = hierarchy[0]
 
-            # get the hierarchy level of every contour and map the two together
+            # get the hierarchy level of every contour and
+            # map the two together
             hierarchy_levels = self.get_contour_levels(hierarchy)
 
             # initialize target contours
             target_cnts = []
 
             max_level = max(hierarchy_levels)
-            # is there a single contour with the highest hierarchy? If there is and it's got a high area and solidity,
-            # then it's very likely the contour in the center of the target
+            # is there a single contour with the highest hierarchy?
+            # If there is and it's got a high area and solidity, then
+            # it's very likely the contour in the center of the target
             if hierarchy_levels.count(max_level) == 1:
                 i = hierarchy_levels.index(max_level)
                 if self.are_solidity_and_area_high(cnts[i]):
                     target_cnts.append(cnts[i])
             else:
-                # if there's more than one, we'll have to check for further criteria
+                # if there's more than one, we need to filter further
                 if hierarchy_levels.count(max_level) > 1:
                     i = -1
                     for hierarchy_level in hierarchy_levels:
@@ -87,19 +91,11 @@ class Vision(object):
                         if hierarchy_level == max_level:
                             # filter out contours that don't have 4 corners
                             epsilon = cv2.arcLength(cnts[i], True)
-                            approx = cv2.approxPolyDP(cnts[i], 0.01 * epsilon, True)
+                            approx = cv2.approxPolyDP(cnts[i], 0.01 * epsilon,
+                                                      True)
                             if len(approx) == 4:
                                 if self.are_solidity_and_area_high(cnts[i]):
                                     target_cnts.append(cnts[i])
-
-                        # # filter out contours that aren't enclosed
-                        # if hierarchy_level > 0:
-                        #     # filter out contours that don't have 4 corners
-                        #     epsilon = cv2.arcLength(cnts[i], True)
-                        #     approx = cv2.approxPolyDP(cnts[i], 0.02 * epsilon, True)
-                        #     if len(approx) == 4:
-                        #         if self.are_solidity_and_area_high(cnts[i]):
-                        #             target_cnts.append(cnts[i])
 
             # draw the contour
             cv2.drawContours(resized, target_cnts, -1, GREEN, 2)
@@ -114,13 +110,15 @@ class Vision(object):
                     self.target.y_ratio = y / float(image_height)
                     if self.target.y_ratio > 0.4 and self.target.y_ratio < 0.6:
                         self.target.found = True
-                        callback({'cmd': 'target near center','data': self.target})
+                        callback({'cmd': 'target near center',
+                                  'data': self.target})
                     else:
                         callback({'cmd': '', 'data': self.target})
                 cv2.circle(resized, (x, y), 5, YELLOW, -1)
 
             # output target coordinates
-            self.draw_text(resized, 'Y/target Y: {:4f}'.format(self.target.y_ratio), RED)
+            self.draw_text(resized, 'Y/target Y: {:4f}'
+                           .format(self.target.y_ratio), RED)
             # show solidity and area
             self.draw_solidity_and_area_on_contours(resized, target_cnts)
 
@@ -151,8 +149,11 @@ class Vision(object):
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
         norm_image = blurred
         cv2.normalize(norm_image, norm_image, 0, 255, cv2.NORM_MINMAX)
-        # find otsu's threshold value with OpenCV function using adaptive gaussian threshold
-        ret, thresh = cv2.threshold(norm_image, 0, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C + cv2.THRESH_OTSU)
+        # find otsu's threshold value with OpenCV function using
+        # adaptive gaussian threshold
+        ret, thresh = cv2.threshold(norm_image, 0, 255,
+                                    cv2.ADAPTIVE_THRESH_GAUSSIAN_C +
+                                    cv2.THRESH_OTSU)
         #ret, thresh = cv2.threshold(norm_image, 10, 250, cv2.THRESH_OTSU)
         return thresh
 
@@ -160,15 +161,9 @@ class Vision(object):
         area = cv2.contourArea(c)
         solidity_and_area_are_high = False
         if area:
-            # (x, y, w, h) = cv2.boundingRect(c)
-            #
-            # # compute the aspect ratio of the contour, which is simply the width divided by the height of the bounding box
-            # aspectRatio = w / float(h)
-            #
-            # # use the area of the contour and the bounding box area to compute the extent
-            # extent = area / float(w * h)
-
-            # compute the convex hull of the contour, then use the area of the original contour and the area of the convex hull to compute the solidity
+            # compute the convex hull of the contour, then
+            # use the area of the original contour and the
+            # area of the convex hull to compute the solidity
             hull = cv2.convexHull(c)
             hullArea = cv2.contourArea(hull)
             solidity = area / float(hullArea)
@@ -185,9 +180,11 @@ class Vision(object):
                 hull = cv2.convexHull(c)
                 hull_area = cv2.contourArea(hull)
                 solidity = area / float(hull_area)
-                cv2.putText(img, '{:2f}'.format(solidity), tuple(c[c[:, :, 0].argmin()][0]),
+                cv2.putText(img, '{:2f}'.format(solidity),
+                            tuple(c[c[:, :, 0].argmin()][0]),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, BLUE, 2)
-                cv2.putText(img, '{:f}'.format(area), tuple(c[c[:, :, 0].argmax()][0]),
+                cv2.putText(img, '{:f}'.format(area),
+                            tuple(c[c[:, :, 0].argmax()][0]),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, RED, 2)
 
     def find_smallest_contour(self, contours):
