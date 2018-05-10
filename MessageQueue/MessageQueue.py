@@ -33,4 +33,3 @@ class Message():
     def __init__(self, command, data):
         self.command = command
         self.data = data
-        return self.__dict__
