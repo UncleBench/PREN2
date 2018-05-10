@@ -2,7 +2,6 @@ import cv2
 import numpy as np
 import time
 from imutils.video import FPS
-
 from MessageQueue.MessageQueue import Message
 from VideoStream import VideoStream
 from Target import Target
@@ -37,6 +36,11 @@ class Vision(object):
         self.stop = True
 
     def capture(self, callback):
+        # if we're on the Pi, name the process 'Vision'
+        if self.usePiCamera:
+            from setproctitle import setproctitle
+            setproctitle('Vision')
+
         # FPS counter for debug mode
         if self.debug:
             self.fps = FPS().start()
