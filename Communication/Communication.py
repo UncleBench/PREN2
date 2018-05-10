@@ -28,6 +28,7 @@ class Communication():
         self.sens_act = SerialCommunication(com=self.sens_act_com)
         self.motor = MotorControl(com=self.motor_com)
         self.position_thread.start()
+        self.position_thread.join()
 
     def update_position(self):
         print "start position update thread"
