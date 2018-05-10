@@ -1,19 +1,18 @@
 from kombu import Connection
-from contextlib import closing
-from multiprocessing import Process
-from setproctitle import setproctitle
+from multithreading import Thread
 
 class MessageQueue(object):
-    def __init__(self, callback):
+    def __init__(self, qname, receive=False, callback=None):
         self.active = True
-        self.sender = Connection('amqp://').SimpleBuffer('psMQ')
-        self.receiver = Connection('amqp://').SimpleBuffer('psMQ')
-        self.worker = Process(target=self.receive, name='MessageQueue',
-                        args=(callback,))
-        self.worker.start()
+        self.qname = qname
+        self.sender = Connection('amqp://').SimpleBuffer(self.qname)
+        if receive:
+            self.receiver = Connection('amqp://').SimpleBuffer(self.qname)
+            self.worker = Thread(target=self.receive, name='MQ'+self.qname,
+                            args=(callback,))
+            self.worker.start()
 
     def receive(self, callback):
-        setproctitle('MessageQueue')
         while self.active:
             message = self.receiver.get(block=True, timeout=None)
             if message:
