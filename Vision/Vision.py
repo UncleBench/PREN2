@@ -71,33 +71,43 @@ class Vision(object):
             # initialize target contours
             target_cnts = []
 
+            max_level = max(hierarchy_levels)
             # is there a single contour with the highest hierarchy? If there is and it's got a high area and solidity,
             # then it's very likely the contour in the center of the target
-            if hierarchy_levels.count(max(hierarchy_levels)) == 1:
-                i = hierarchy_levels.index(max(hierarchy_levels))
+            if hierarchy_levels.count(max_level) == 1:
+                i = hierarchy_levels.index(max_level)
                 if self.are_solidity_and_area_high(cnts[i]):
                     target_cnts.append(cnts[i])
-            # # if there's more than one, we'll have to check for further criteria
-            # else:
-            #     i = -1
-            #     for hierarchy_level in hierarchy_levels:
-            #         i += 1
-            #         # filter out contours that aren't enclosed
-            #         if hierarchy_level > 0:
-            #             # filter out contours that don't have 4 corners
-            #             epsilon = cv2.arcLength(cnts[i], True)
-            #             approx = cv2.approxPolyDP(cnts[i], 0.02 * epsilon, True)
-            #             if len(approx) == 4:
-            #                 if self.are_solidity_and_area_high(cnts[i]):
-            #                     target_cnts.append(cnts[i])
+            else:
+                # if there's more than one, we'll have to check for further criteria
+                if hierarchy_levels.count(max_level) > 1:
+                    i = -1
+                    for hierarchy_level in hierarchy_levels:
+                        i += 1
+                        if hierarchy_level == max_level:
+                            # filter out contours that don't have 4 corners
+                            epsilon = cv2.arcLength(cnts[i], True)
+                            approx = cv2.approxPolyDP(cnts[i], 0.01 * epsilon, True)
+                            if len(approx) == 4:
+                                if self.are_solidity_and_area_high(cnts[i]):
+                                    target_cnts.append(cnts[i])
+
+                        # # filter out contours that aren't enclosed
+                        # if hierarchy_level > 0:
+                        #     # filter out contours that don't have 4 corners
+                        #     epsilon = cv2.arcLength(cnts[i], True)
+                        #     approx = cv2.approxPolyDP(cnts[i], 0.02 * epsilon, True)
+                        #     if len(approx) == 4:
+                        #         if self.are_solidity_and_area_high(cnts[i]):
+                        #             target_cnts.append(cnts[i])
 
             # draw the contour
             cv2.drawContours(resized, target_cnts, -1, GREEN, 2)
 
             x, y = -1, -1
             if target_cnts:
-                smallest_contour = self.find_smallest_contour(target_cnts)
-                x, y = self.determine_center(smallest_contour)
+                target_contour = self.find_biggest_contour(target_cnts)
+                x, y = self.determine_center(target_contour)
 
                 image_height, _, _ = resized.shape
                 if y != -1:
@@ -184,8 +194,13 @@ class Vision(object):
         # Find the index of the smallest target contour
         areas = [cv2.contourArea(c) for c in contours]
         if len(areas) > 0:
-            min_index = np.argmin(areas)
-            return contours[min_index]
+            return contours[np.argmin(areas)]
+
+    def find_biggest_contour(self, contours):
+        # Find the index of the biggest target contour
+        areas = [cv2.contourArea(c) for c in contours]
+        if len(areas) > 0:
+            return contours[np.argmax(areas)]
 
     def get_contour_levels(self, hierarchy):
         contour_levels = []
