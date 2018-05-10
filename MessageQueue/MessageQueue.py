@@ -11,7 +11,6 @@ class MessageQueue(object):
             self.worker = Thread(target=self.receive, name='MQ'+self.qname,
                                  args=(callback,))
             self.worker.start()
-            self.worker.join()
 
     def receive(self, callback):
         while self.active:
