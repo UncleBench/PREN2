@@ -29,3 +29,8 @@ class MessageQueue(object):
     def shutdown(self):
         self.send('__QX')
         self.sender.close()
+
+class Message():
+    def __init__(self, command, data):
+        self.command = command
+        self.data = data
