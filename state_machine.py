@@ -7,6 +7,7 @@ import argparse
 class Prachtstueck():
     def __init__(self):
         pass
+        #self.main_queue = MessageQueue(callback=parser.interpret_command, )
 
     def on_enter_init(self):
         print("Kommunikation Arduino Greifer, Whisker, Position, Batterie Raspi initialisieren")
@@ -33,7 +34,7 @@ class Prachtstueck():
 
     def on_enter_grab_load(self):
         print("Wuerfel greifen")
-        self.arduino.setGrabber(SerialCommunication.GrabberState.CLOSE)
+        #self.arduino.setGrabber(SerialCommunication.GrabberState.CLOSE)
         print("Koordinatenanzeige starten")
 
     def on_enter_lift_load(self):
@@ -117,6 +118,7 @@ if __name__ == '__main__':
 
     # init Message Queue
     #msg_queue = MessageQueue(callback=parser.interpret_command)
+    main_queue = MessageQueue(qname='main', callback=parser.interpret_command)
 
     # init Vision
     vision = Vision(callback=parser.interpret_command, usePiCamera=True, debug=False)
