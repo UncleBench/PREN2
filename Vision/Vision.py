@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import time
 from imutils.video import FPS
+
+from MessageQueue.MessageQueue import Message
 from VideoStream import VideoStream
 from Target import Target
 from multiprocessing import Process
@@ -108,12 +110,12 @@ class Vision(object):
                 image_height, _, _ = resized.shape
                 if y != -1:
                     self.target.y_ratio = y / float(image_height)
-                    if self.target.y_ratio > 0.4 and self.target.y_ratio < 0.6:
+                    if not self.target.found:
                         self.target.found = True
-                        callback({'cmd': 'target near center',
-                                  'data': self.target})
+                        callback(Message('target_found', self.target))
                     else:
-                        callback({'cmd': '', 'data': self.target})
+                        if 0.45 < self.target.y_ratio < 0.55:
+                            callback(Message('target_centered', self.target))
                 cv2.circle(resized, (x, y), 5, YELLOW, -1)
 
             # output target coordinates
