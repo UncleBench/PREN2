@@ -74,11 +74,12 @@ class Parser():
         self.state_machine = state_machine
 
     def interpret_command(self, msg):
-        if msg['command'] is 'Position':
+        print "message received"
+        if msg.command is 'Position':
             print "Position:", msg['data']
-        elif msg['command'] is 'target_found':
+        elif msg.command is 'target_found':
             print "target found"
-        elif msg['command'] is 'target_centered':
+        elif msg.command is 'target_centered':
             print "target centered"
         #if command is "wake_up":
         #    self.state_machine.wake_up()
