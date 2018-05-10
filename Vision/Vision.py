@@ -4,32 +4,43 @@ import time
 from imutils.video import FPS
 from VideoStream import VideoStream
 from Target import Target
+from multiprocessing import Process
 
 
-class Vision:
-    def __init__(self, usePiCamera=False, debug=False):
+# constants for display output
+BLUE = (255, 0, 0)
+GREEN = (0, 255, 0)
+RED = (0, 0, 255)
+YELLOW = (0, 255, 255)
+ORANGE = (0, 165, 255)
+PURPLE = (255, 0, 255)
+
+
+class Vision(object):
+    def __init__(self, callback, usePiCamera=False, debug=False):
+        self.stop = False
         self.usePiCamera = usePiCamera
+        self.stream = None
+        self.debug = debug
+
+        # output
+        self.target = None
+
+        self.worker = Process(target=self.capture, name='VisionProcess', args=(callback,))
+        self.worker.start()
+        self.worker.join()
+
+    def stop_capture(self):
+        self.stop = True
+
+    def capture(self, callback):
+        # FPS counter for debug mode
+        if self.debug:
+            self.fps = FPS().start()
+        self.target = Target()
         self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
         # wait for the camera to initialize
         time.sleep(2.0)
-
-        # FPS counter for debug mode
-        if debug:
-            self.debug = debug
-            self.fps = FPS().start()
-
-        # output
-        self.target = Target()
-
-        # constants for display output
-        self.BLUE = (255, 0, 0)
-        self.GREEN = (0, 255, 0)
-        self.RED = (0, 0, 255)
-        self.YELLOW = (0, 255, 255)
-        self.ORANGE = (0, 165, 255)
-        self.PURPLE = (255, 0, 255)
-
-    def capture(self):
         while True:
             # if self.debug:
             #     print(time.time())
@@ -66,36 +77,40 @@ class Vision:
                 i = hierarchy_levels.index(max(hierarchy_levels))
                 if self.are_solidity_and_area_high(cnts[i]):
                     target_cnts.append(cnts[i])
-            # if there's more than one, we'll have to check for further criteria
-            else:
-                i = -1
-                for hierarchy_level in hierarchy_levels:
-                    i += 1
-                    # filter out contours that aren't enclosed
-                    if hierarchy_level > 0:
-                        # filter out contours that don't have 4 corners
-                        epsilon = cv2.arcLength(cnts[i], True)
-                        approx = cv2.approxPolyDP(cnts[i], 0.02 * epsilon, True)
-                        if len(approx) == 4:
-                            if self.are_solidity_and_area_high(cnts[i]):
-                                target_cnts.append(cnts[i])
+            # # if there's more than one, we'll have to check for further criteria
+            # else:
+            #     i = -1
+            #     for hierarchy_level in hierarchy_levels:
+            #         i += 1
+            #         # filter out contours that aren't enclosed
+            #         if hierarchy_level > 0:
+            #             # filter out contours that don't have 4 corners
+            #             epsilon = cv2.arcLength(cnts[i], True)
+            #             approx = cv2.approxPolyDP(cnts[i], 0.02 * epsilon, True)
+            #             if len(approx) == 4:
+            #                 if self.are_solidity_and_area_high(cnts[i]):
+            #                     target_cnts.append(cnts[i])
 
             # draw the contour
-            cv2.drawContours(resized, target_cnts, -1, self.GREEN, 2)
+            cv2.drawContours(resized, target_cnts, -1, GREEN, 2)
 
-            x, y = 0, 0
+            x, y = -1, -1
             if target_cnts:
                 smallest_contour = self.find_smallest_contour(target_cnts)
                 x, y = self.determine_center(smallest_contour)
-                if y != 0:
-                    self.target.found = True
-                else:
-                    self.target.found = False
-                self.target.y = y
-                cv2.circle(resized, (x, self.target.y), 5, self.YELLOW, -1)
+
+                image_height, _, _ = resized.shape
+                if y != -1:
+                    self.target.y_ratio = y / float(image_height)
+                    if self.target.y_ratio > 0.4 and self.target.y_ratio < 0.6:
+                        self.target.found = True
+                        callback({'cmd': 'target near center','data': self.target})
+                    else:
+                        callback({'cmd': '', 'data': self.target})
+                cv2.circle(resized, (x, y), 5, YELLOW, -1)
 
             # output target coordinates
-            self.draw_text(resized, 'Target: {:4d}, {:4d}'.format(x, y), self.RED)
+            self.draw_text(resized, 'Y/target Y: {:4f}'.format(self.target.y_ratio), RED)
             # show solidity and area
             self.draw_solidity_and_area_on_contours(resized, target_cnts)
 
@@ -103,7 +118,7 @@ class Vision:
             cv2.imshow('Contours on original image', resized)
 
             # esc to quit
-            if cv2.waitKey(1) == 27:
+            if cv2.waitKey(1) == 27 or self.stop:
                 break
             # A to go frame by frame
             # while cv2.waitKey(1) != 65:
@@ -160,10 +175,10 @@ class Vision:
                 hull = cv2.convexHull(c)
                 hull_area = cv2.contourArea(hull)
                 solidity = area / float(hull_area)
-                cv2.putText(img, '{:2f}'.format(solidity), tuple(c[c[:, :, 0].argmin()][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                            self.BLUE, 2)
-                cv2.putText(img, '{:f}'.format(area), tuple(c[c[:, :, 0].argmax()][0]), cv2.FONT_HERSHEY_SIMPLEX, 0.5,
-                            self.RED, 2)
+                cv2.putText(img, '{:2f}'.format(solidity), tuple(c[c[:, :, 0].argmin()][0]),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, BLUE, 2)
+                cv2.putText(img, '{:f}'.format(area), tuple(c[c[:, :, 0].argmax()][0]),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, RED, 2)
 
     def find_smallest_contour(self, contours):
         # Find the index of the smallest target contour
