@@ -1,5 +1,5 @@
 from kombu import Connection
-from multithreading import Thread
+from threading import Thread
 
 class MessageQueue(object):
     def __init__(self, qname, receive=False, callback=None):
