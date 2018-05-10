@@ -2,7 +2,7 @@ import cv2
 import numpy as np
 import time
 from imutils.video import FPS
-from MessageQueue.MessageQueue import Message
+from MessageQueue.MessageQueue import MessageQueue, Message
 from VideoStream import VideoStream
 from Target import Target
 from multiprocessing import Process
@@ -18,7 +18,7 @@ PURPLE = (255, 0, 255)
 
 
 class Vision(object):
-    def __init__(self, callback, usePiCamera=False, debug=False):
+    def __init__(self, usePiCamera=False, debug=False):
         self.stop = False
         self.usePiCamera = usePiCamera
         self.stream = None
@@ -27,9 +27,14 @@ class Vision(object):
         # output
         self.target = None
 
-        self.worker = Process(target=self.capture, name='VisionProcess',
-                              args=(callback,))
+        self.main_queue = MessageQueue(callback=None, qname='ps_main')
+        self.communication_queue = MessageQueue(callback=self.command_interpreter, qname='ps_communication')
+
+        self.worker = Process(target=self.capture, name='VisionProcess')
         self.worker.start()
+
+    def command_interpreter(self, command):
+        pass
 
     def stop_capture(self):
         self.stop = True
@@ -115,10 +120,10 @@ class Vision(object):
                     self.target.y_ratio = y / float(image_height)
                     if not self.target.found:
                         self.target.found = True
-                        callback(Message('target_found', self.target))
+                        self.main_queue.send(Message('target_found', self.target).__dict__)
                     else:
                         if 0.45 < self.target.y_ratio < 0.55:
-                            callback(Message('target_centered', self.target))
+                            self.main_queue.send(Message('target_centered', self.target).__dict__)
                 cv2.circle(resized, (x, y), 5, YELLOW, -1)
 
             # output target coordinates

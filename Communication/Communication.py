@@ -1,5 +1,5 @@
 from MessageQueue.MessageQueue import MessageQueue, Message
-from SerialCommunication import SerialCommunication
+from SerialCommunication import SerialCommunication, StopState
 from MotorControl import MotorControl
 from PositionDetermination.PosSensor import PosSensor
 from multiprocessing import Process
@@ -20,9 +20,11 @@ class Communication():
     def initiate_communication(self):
         print "start Communication Process"
         setproctitle("Communication")
-        #self.main_queue = MessageQueue(callback=self.command_interpreter, qname='main')
-        self.main_queue = MessageQueue(callback=None, qname='main')
-        #self.receiver_queue = MessageQueue(qname='')
+
+        self.main_queue = MessageQueue(callback=None, qname='ps_main')
+        self.gui_queue = MessageQueue(callback=None, qname='ps_gui')
+        self.communication_queue = MessageQueue(callback=self.command_interpreter, qname='ps_communication')
+
         self.position_thread = Thread(target=self.update_position, name="Position Update")
         self.pos_sensor = PosSensor()
         self.sens_act = SerialCommunication(com=self.sens_act_com)
@@ -38,6 +40,7 @@ class Communication():
             raw_alpha = self.sens_act.getRawAlpha()
             raw_beta = self.sens_act.getRawBeta()
             battery_voltage = self.sens_act.getBatteryVoltage()
+            stop_state = self.sens_act.getStopState()
             self.sens_act_lock.release()
 
             self.motor_lock.acquire()
@@ -45,13 +48,19 @@ class Communication():
             driven_dist = {'x': 20.0, 'z': 20.0}
             self.motor_lock.release()
 
+            if stop_state is StopState.STOP:
+                self.gui_queue.send(Message("stop", []).__dict__)
+                self.main_queue.send(Message("stop", []).__dict__)
+
             pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, driven_dist['x'], driven_dist['z'])
 
-            msg = Message("Position", [pos.x, pos.z, battery_voltage])
-            #self.receiver_queue.send(msg)
+            msg = Message("Position", [pos.x, pos.z, battery_voltage]).__dict__
+            self.gui_queue.send(msg)
             self.main_queue.send(msg)
 
-
     def command_interpreter(self, command):
-        meth = getattr(self, command['cmd'])
+        if hasattr(self.motor, command['cmd']):
+            meth = getattr(self.motor, command['cmd'])
+        else:
+            meth = getattr(self.sens_act, command['cmd'])
         meth(*command['data'])
