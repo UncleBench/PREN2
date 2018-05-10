@@ -18,67 +18,67 @@ class Prachtstueck():
         print("Kamera auf 20 Grad setzen")
 
         print("Programm fuer Vision starten")
-        self.vision_queue(Message('start', []).__dict__)
+        self.vision_queue(Message('start'))
 
     def on_enter_to_load(self):
         print("Zum Wuerfel fahren")
-        self.communication_queue.send(Message('drive_x', [30, 10000]).__dict__)
+        self.communication_queue.send(Message('drive_x', [30, 10000]))
 
         print("Greifer nach unten")
-        self.communication_queue.send(Message('drive_z', [-30, 10000]).__dict__)
+        self.communication_queue.send(Message('drive_z', [-30, 10000]))
 
     def on_enter_insert_load(self):
         print("Nach vorne fahren ca 2cm")
-        self.communication_queue.send(Message('drive_x', [20, 10000]).__dict__)
+        self.communication_queue.send(Message('drive_x', [20, 10000]))
 
     def on_enter_grab_load(self):
         print("Wuerfel greifen")
-        self.communication_queue.send(Message('setGrabber', [GrabberState.CLOSE]).__dict__)
+        self.communication_queue.send(Message('setGrabber', [GrabberState.CLOSE]))
         print("Koordinatenanzeige starten")
-        self.gui_queue.send(Message('start_coord', []).__dict__)
+        self.gui_queue.send(Message('start_coord'))
 
 
     def on_enter_lift_load(self):
         print("Greifer nach oben")
-        self.communication_queue.send(Message('drive_z', [-20, 10000]).__dict__)
+        self.communication_queue.send(Message('drive_z', [-20, 10000]))
 
     def on_enter_to_target(self):
         print("Fahren solange Zielplattform nicht in unterer Bildhaelfte")
-        self.communication_queue.send(Message('drive_x', [200, 30000]).__dict__)
+        self.communication_queue.send(Message('drive_x', [200, 30000]))
 
     def on_enter_center_target(self):
         print("Kamera bewegen nach unten")
         print("Kamera in Ablademodus setzen")
 
-        self.communication_queue.send(Message('stop', []).__dict__)
-        self.communication_queue.send(Message('drive_x', [30, 10000]).__dict__)
+        self.communication_queue.send(Message('stop'))
+        self.communication_queue.send(Message('drive_x', [30, 10000]))
         print("Fahren solange Zielplattform nicht mittig")
 
     def on_enter_set_load(self):
         print("Greifer nach unten")
-        self.communication_queue.send(Message('stop', []).__dict__)
-        self.communication_queue.send(Message('drive_z', [40, 10000]).__dict__)
+        self.communication_queue.send(Message('stop'))
+        self.communication_queue.send(Message('drive_z', [40, 10000]))
 
     def on_enter_release_load(self):
         print("Wuerfel loslassen")
-        self.communication_queue.send(Message('setGrabber', [GrabberState.OPEN]).__dict__)
+        self.communication_queue.send(Message('setGrabber', [GrabberState.OPEN]))
 
     def on_enter_lift_grabber(self):
         print("Greifer nach oben")
-        self.communication_queue.send(Message('drive_z', [20, 10000]).__dict__)
+        self.communication_queue.send(Message('drive_z', [20, 10000]))
 
     def on_enter_fast_to_stop(self):
         print("Berechne restliche Fahrt")
         print("Berechnete Strecke fahren")
-        self.communication_queue.send(Message('drive_x', [50, 30000]).__dict__)
+        self.communication_queue.send(Message('drive_x', [50, 30000]))
 
     def on_enter_slow_to_stop(self):
         print("Langsam fahren solange Stopp nicht erreicht")
-        self.communication_queue.send(Message('drive_x', [10, 30000]).__dict__)
+        self.communication_queue.send(Message('drive_x', [10, 30000]))
 
     def on_enter_shutdown(self):
         print("Stop")
-        self.communication_queue.send(Message('stop', []).__dict__)
+        self.communication_queue.send(Message('stop'))
         #self.kill()
 
 class Parser():

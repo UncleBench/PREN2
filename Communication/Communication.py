@@ -49,12 +49,12 @@ class Communication():
             self.motor_lock.release()
 
             if stop_state is StopState.STOP:
-                self.gui_queue.send(Message("stop", []).__dict__)
-                self.main_queue.send(Message("stop", []).__dict__)
+                self.gui_queue.send(Message("stop"))
+                self.main_queue.send(Message("stop"))
 
             pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, driven_dist['x'], driven_dist['z'])
 
-            msg = Message("Position", [pos.x, pos.z, battery_voltage]).__dict__
+            msg = Message("Position", [pos.x, pos.z, battery_voltage])
             self.gui_queue.send(msg)
             self.main_queue.send(msg)
 

@@ -120,10 +120,10 @@ class Vision(object):
                     self.target.y_ratio = y / float(image_height)
                     if not self.target.found:
                         self.target.found = True
-                        self.main_queue.send(Message('target_found', self.target).__dict__)
+                        self.main_queue.send(Message('target_found', self.target))
                     else:
                         if 0.45 < self.target.y_ratio < 0.55:
-                            self.main_queue.send(Message('target_centered', self.target).__dict__)
+                            self.main_queue.send(Message('target_centered', self.target))
                 cv2.circle(resized, (x, y), 5, YELLOW, -1)
 
             # output target coordinates
