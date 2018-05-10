@@ -38,17 +38,21 @@ class Communication():
             raw_beta = self.sens_act.getRawBeta()
             battery_voltage = self.sens_act.getBatteryVoltage()
             self.sens_act_lock.release()
+            print "sens act lock passed"
 
             self.motor_lock.aquire()
             #driven_dist = self.motor.get_distance_driven()
             driven_dist = {'x': 20.0, 'z': 20.0}
             self.motor_lock.release()
+            print "motor lock passed"
 
             pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, driven_dist['x'], driven_dist['z'])
 
             msg = Message("Position", [pos.x, pos.z, battery_voltage])
             #self.receiver_queue.send(msg)
             self.position_thread.send(msg)
+
+            print [pos.x, pos.z, battery_voltage]
 
 
     def command_interpreter(self, command):
