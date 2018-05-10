@@ -30,7 +30,6 @@ class Vision(object):
         self.worker = Process(target=self.capture, name='VisionProcess',
                               args=(callback,))
         self.worker.start()
-        self.worker.join()
 
     def stop_capture(self):
         self.stop = True
