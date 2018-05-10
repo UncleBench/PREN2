@@ -51,7 +51,7 @@ class Communication():
 
             msg = Message("Position", [pos.x, pos.z, battery_voltage])
             #self.receiver_queue.send(msg)
-            self.position_thread.send(msg)
+            self.main_queue.send(msg)
 
             print [pos.x, pos.z, battery_voltage]
 
