@@ -36,7 +36,7 @@ class Prachtstueck():
         print("Wuerfel greifen")
         self.communication_queue.send(Message('setGrabber', [GrabberState.CLOSE]))
         print("Koordinatenanzeige starten")
-        self.gui_queue.send(Message('start_coord'))
+        self.gui_queue.send(Message('show_coord', True))
 
 
     def on_enter_lift_load(self):
@@ -63,6 +63,7 @@ class Prachtstueck():
     def on_enter_release_load(self):
         print("Wuerfel loslassen")
         self.communication_queue.send(Message('setGrabber', [GrabberState.OPEN]))
+        self.gui_queue.send(Message('show_coord', False))
 
     def on_enter_lift_grabber(self):
         print("Greifer nach oben")
