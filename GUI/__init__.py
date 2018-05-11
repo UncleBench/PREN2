@@ -7,3 +7,5 @@ class GUI():
     def update(self, x_pos, z_pos, voltage):
         self.socket.emit('gui_update', {'x_pos': x_pos, 'z_pos': z_pos, 
                                         'voltage': voltage})
+    def send(self, message):
+        self.socket.emit('gui_command', message)
