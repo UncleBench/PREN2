@@ -1,15 +1,23 @@
 from Vision.Vision import Vision
-from Communication.SerialCommunication import StopState, GrabberState
+from Communication.SerialCommunication import StopState
+from PositionDetermination.PosSensor import Position
 from MessageQueue.MessageQueue import MessageQueue, Message
 from GUI import GUI
 from Communication.Communication import Communication
 from transitions.extensions import GraphMachine as Machine
+from transitions import MachineError
+from time import sleep
 
 class Prachtstueck():
     def __init__(self):
         self.communication_queue = MessageQueue(qname='ps_communication')
         self.vision_queue = MessageQueue(qname='ps_vision')
         self.gui_queue = GUI()
+        print "init Message Queue"
+        main_queue = MessageQueue(callback=self.interpret_command, qname='ps_main')
+
+        self.position = Position(0, 0, 0)
+        self.batteryVoltage = 0.0
 
     def on_enter_init(self):
         print("Kommunikation Arduino Greifer, Whisker, Position, Batterie Raspi initialisieren")
@@ -19,107 +27,120 @@ class Prachtstueck():
         print("Kamera auf 20 Grad setzen")
 
         print("Programm fuer Vision starten")
-        self.vision_queue(Message('start'))
+        self.communication_queue(Message('home', []))
+        self.init_finished()
 
     def on_enter_to_load(self):
-        print("Zum Wuerfel fahren")
-        self.communication_queue.send(Message('drive_x', [30, 10000]))
-
-        print("Greifer nach unten")
-        self.communication_queue.send(Message('drive_z', [-30, 10000]))
+        print("Zum Wuerfel fahren and Greifer nach unten")
+        self.communication_queue.send(Message('drive', [30, - (self.position.z-20), 1000]))
 
     def on_enter_insert_load(self):
         print("Nach vorne fahren ca 2cm")
-        self.communication_queue.send(Message('drive_x', [20, 10000]))
+        self.communication_queue.send(Message('drive_x', [20, 1000]))
 
     def on_enter_grab_load(self):
         print("Wuerfel greifen")
-        self.communication_queue.send(Message('setGrabber', [GrabberState.CLOSE]))
+        self.communication_queue.send(Message('setGrabber', [50]))
         print("Koordinatenanzeige starten")
         self.gui_queue.send(Message('show_coord', True))
+        sleep(2)
+        self.load_grabbed()
 
 
     def on_enter_lift_load(self):
         print("Greifer nach oben")
-        self.communication_queue.send(Message('drive_z', [-20, 10000]))
+        self.communication_queue.send(Message('drive_z_to_home', [1000]))
 
     def on_enter_to_target(self):
         print("Fahren solange Zielplattform nicht in unterer Bildhaelfte")
-        self.communication_queue.send(Message('drive_x', [200, 30000]))
+        self.vision_queue(Message('start', []))
+        self.communication_queue.send(Message('drive_x', [2000, 1000]))
 
     def on_enter_center_target(self):
         print("Kamera bewegen nach unten")
         print("Kamera in Ablademodus setzen")
 
-        self.communication_queue.send(Message('stop'))
-        self.communication_queue.send(Message('drive_x', [30, 10000]))
+        self.communication_queue.send(Message('stop', []))
+        self.communication_queue.send(Message('drive_x', [200, 1000]))
         print("Fahren solange Zielplattform nicht mittig")
 
     def on_enter_set_load(self):
         print("Greifer nach unten")
-        self.communication_queue.send(Message('stop'))
-        self.communication_queue.send(Message('drive_z', [40, 10000]))
+        self.vision_queue(Message('stop', []))
+        self.communication_queue.send(Message('stop', []))
+        self.communication_queue.send(Message('drive_z', [-(self.position.z-20), 1000]))
 
     def on_enter_release_load(self):
         print("Wuerfel loslassen")
-        self.communication_queue.send(Message('setGrabber', [GrabberState.OPEN]))
+        self.communication_queue.send(Message('setGrabber', [9]))
+        sleep(2)
         self.gui_queue.send(Message('show_coord', False))
+        self.load_released()
 
     def on_enter_lift_grabber(self):
         print("Greifer nach oben")
-        self.communication_queue.send(Message('drive_z', [20, 10000]))
+        self.communication_queue.send(Message('drive_z_to_home', [1000]))
 
     def on_enter_fast_to_stop(self):
         print("Berechne restliche Fahrt")
         print("Berechnete Strecke fahren")
-        self.communication_queue.send(Message('drive_x', [50, 30000]))
+        self.communication_queue.send(Message('drive_x', [self.position.s-20, 1000]))
 
     def on_enter_slow_to_stop(self):
         print("Langsam fahren solange Stopp nicht erreicht")
-        self.communication_queue.send(Message('drive_x', [10, 30000]))
+        self.communication_queue.send(Message('drive_x', [self.position.s+10, 1000]))
 
     def on_enter_shutdown(self):
         print("Stop")
-        self.communication_queue.send(Message('stop'))
-        #self.kill()
-
-class Parser():
-    def __init__(self, state_machine):
-        self.state_machine = state_machine
+        self.communication_queue.send(Message('stop', []))
+        self.vision_queue.shutdown()
+        self.communication_queue.shutdown()
+        self.gui_queue.shutdown()
 
     def interpret_command(self, msg):
-        print "message received"
+        if self.is_sleep():
+            if msg['command'] is 'home':
+                self.wake_up()
 
-        if self.state_machine.is_init():
+        if self.is_init():
             if msg['command'] is 'init_finished':
-                self.state_machine.init_finished()
+                self.init_finished()
 
-        if self.state_machine.is_wait_for_start():
+        if self.is_wait_for_start():
             if msg['command'] is 'start':
-                self.state_machine.start()
+                self.start()
 
-        if self.state_machine.is_to_load():
-            if msg['command'] is 'Position':
+        if self.is_to_load():
+            if msg['command'] is 'position':
                 print "Position:", msg['data']
 
-        if self.state_machine.is_insert_load():
-            if msg['command'] is 'Position':
-                print "Position:", msg['data']
+        if self.is_insert_load():
+            if msg['command'] is 'position':
+                print "position:", msg['data']
 
-        if self.state_machine.is_to_target():
+        if self.is_to_target():
             if msg['command'] is 'target_found':
                 print "target found"
-                self.state_machine.target_is_close()
+                self.target_is_close()
 
-        if self.state_machine.is_center_target():
+        if self.is_center_target():
             if msg['command'] is 'target_centered':
                 print "target centered"
-                self.state_machine.target_is_centered()
+                self.target_is_centered()
 
-        if self.state_machine.slow_to_stop():
+        if self.slow_to_stop():
             if msg['command'] is 'stop':
-                self.state_machine.stop_btn_pushed()
+                self.to_shutdown()
 
+        if msg['command'] is 'motor_state':
+            try:
+                self.drive_finished()
+            except MachineError:
+                print "drive_finished() not valid in this state"
+
+        if msg['command'] is 'position':
+            self.position = msg['data'][0]
+            self.batteryVoltage = msg['data'][1]
 
         elif msg['command'] is 'target_centered':
             print "target centered"
@@ -153,24 +174,18 @@ if __name__ == '__main__':
         {'trigger': 'drive_finished', 'source': 'fast_to_stop', 'dest': 'slow_to_stop'},
         {'trigger': 'stop_btn_pushed', 'source': 'slow_to_stop', 'dest': 'shutdown'},
     ]
+
     print "init state machine"
     prachtstueck = Prachtstueck()
     machine = Machine(prachtstueck, states=states, transitions=transitions, initial='sleep')
 
-    # init Parser
-    print "init Parser"
-    parser = Parser(prachtstueck)
-
-    print "init Message Queue"
-    main_queue = MessageQueue(callback=parser.interpret_command, qname='ps_main')
+    # init Communication
+    print "init Communication"
+    communication = Communication(sens_act_com='/dev/SensorActor', motor_com='/dev/Motor')
 
     # init Vision
     print "init Vision"
-    vision = Vision(callback=parser.interpret_command, usePiCamera=True, debug=False)
-
-    # init Communication
-    print "init Communication"
-    #communication = Communication(sens_act_com='/dev/SensorActor', motor_com='/dev/Motor')
+    vision = Vision(usePiCamera=True, debug=False)
 
     #prachtstueck = Prachtstueck(args["picamera"])
     #prachtstueck.wake_up()

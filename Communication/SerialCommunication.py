@@ -5,10 +5,6 @@ ANGLE_ERROR_CODE = 65535	# -1 signed int
 class CommException(Exception):
     pass
 
-class GrabberState:
-    CLOSE = 0
-    OPEN = 1
-
 class StopState:
     RUNNING = 0
     STOP = 1
@@ -130,10 +126,10 @@ class SerialCommunication:
         """
         return float(self.getCommand("GV")) / 10
 
-    def setGrabber(self, state):
+    def setGrabber(self, closedValue):
         """sets the grabber state on the Arduino
         Args:
-            state (int): GrabberState.OPEN, GrabberState.CLOSE
+            closedValue (int): value for the closed pwm
 
         Returns:
             -
@@ -141,7 +137,7 @@ class SerialCommunication:
         Raises:
             CommException: ... when communication fails / ERR received / timeout exceeded
         """
-        self.setCommand("SG," + str(state))
+        self.setCommand("SG," + str(closedValue))
 
 
 if __name__ == '__main__':

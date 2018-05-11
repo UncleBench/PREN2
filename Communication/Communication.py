@@ -18,6 +18,8 @@ class Communication():
         self.motor_lock = RLock()
         self.worker.start()
 
+        self.last_state = None
+
     def initiate_communication(self):
         print "start Communication Process"
         setproctitle("Communication")
@@ -45,19 +47,26 @@ class Communication():
             self.sens_act_lock.release()
 
             self.motor_lock.acquire()
-            #driven_dist = self.motor.get_distance_driven()
-            driven_dist = {'x': 20.0, 'z': 20.0}
+            #driven_dist = self.motor.get_pos_decoded()
+            driven_dist = ("Idle", {'x': 20.0, 'z': 20.0})
             self.motor_lock.release()
 
             if stop_state is StopState.STOP:
-                self.gui_queue.send(Message("stop"))
-                self.main_queue.send(Message("stop"))
+                self.gui_queue.send(Message('stop', []))
+                self.main_queue.send(Message('stop', []))
 
-            pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, driven_dist['x'], driven_dist['z'])
+            state = driven_dist[0]
+            pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, 343.46-driven_dist[1]['x']/10, driven_dist[1]['z']/10)
+
+            if self.last_state != state:
+                self.gui_queue.send(Message('motor_state', [state]))
 
             data = [pos.x, pos.z, battery_voltage]
             self.gui_queue.update(*data)
+            data.append(pos.s)
             self.main_queue.send(Message("Position", data))
+
+            self.last_state = state
 
     def command_interpreter(self, command):
         if hasattr(self.motor, command['cmd']):
