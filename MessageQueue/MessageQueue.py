@@ -38,8 +38,9 @@ class Message(object):
         
     def __init__(self, command, data=None):
         self.command = command
-        try:
-            json.dumps(data)
-            self.data = data
-        except TypeError:
-            self.data = data.__dict__
+        if not data is None:
+            try:
+                json.dumps(data)
+                self.data = data
+            except TypeError:
+                self.data = data.__dict__
