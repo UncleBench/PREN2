@@ -3,7 +3,7 @@ import json
 
 
 class Position:
-    def __init__(self, x, z):
+    def __init__(self, x, z, s):
         """
         Args:
             x (float): [cm] x Position
@@ -14,6 +14,7 @@ class Position:
         """
         self.x = x
         self.z = z
+        self.s = s
 
 
 class Platform:
@@ -115,7 +116,7 @@ class PosSensor:
         Returns:
             Position: x and z Position of the "Prachtstueck" (shaft of the elevator motor)
         """
-        position = Position(0.0, 0.0)
+        position = Position(0.0, 0.0, dist_to_drive)
         zeta = arctan2(self.platform.k, self.platform.b - self.platform.a)
         alpha = self.angle_correction(self.alpha_sensor.get_radiants(raw_alpha))
         beta = self.angle_correction(self.beta_sensor.get_radiants(raw_beta))
@@ -158,7 +159,7 @@ class PosSensor:
         Returns:
             Position: x and z Position of the "Load"
         """
-        return Position(pos_prachtstueck.x, pos_prachtstueck.z - elevator_distance + self.prachtstueck_dim.offset_elevator)
+        return Position(pos_prachtstueck.x, pos_prachtstueck.z - elevator_distance + self.prachtstueck_dim.offset_elevator, pos_prachtstueck.s)
 
     def angle_correction(self, angle):
         """corrects the measuread angle
@@ -186,4 +187,4 @@ if __name__ == '__main__':
     alpha_ = (alpha / (-0.00117507316)) * pi/180 + 2163.0
     beta_ = (beta / 0.00127890506) * pi/180 + 2178.0
     position = posSensor.get_pos_prachtstueck(alpha_, beta_, 166.771)
-    print(position.x, position.z)
+    print(position.x, position.z, position.s)
