@@ -18,33 +18,58 @@ PURPLE = (255, 0, 255)
 
 
 class Vision(object):
+    """The vision component of team 8's prAchtstueck
+
+    Attr:
+        output_queue (MessageQueue): Messages to send to main go in here
+        input_queue (MessageQueue): Messages from main are taken from here
+    """
     def __init__(self, usePiCamera=False, debug=False):
+        """Constructor of Vision class
+
+        Args:
+            usePiCamera (bool): Use Raspicam module or Webcam
+            debug (bool): Run in debug mode
+
+        Returns:
+            Vision: instance
+        """
         self.stop, self.start = False
         self.usePiCamera = usePiCamera
-        self.stream = None
         self.debug = debug
+        self.target, self.stream = None
 
-        # output
-        self.target = None
-
-        self.main_queue = MessageQueue(callback=None, qname='ps_main')
-        self.communication_queue = MessageQueue(
-            callback=self.command_interpreter, qname='ps_communication')
+        # These queues are the interfaces to the main module
+        self.output_queue = MessageQueue(qname='ps_main')
+        self.input_queue = MessageQueue(callback=self.interpret_command,
+                                        qname='ps_vision')
 
         self.worker = Process(target=self.capture, name='VisionProcess')
         self.worker.start()
 
-    def command_interpreter(self, command):
-        meth = getattr(self, command['cmd'])
-        meth(*command['data'])
+    def interpret_command(self, command):
+        """Used as callback in the input queue and interprets incoming commands
+
+        Args:
+            command (Message): Contains name and args of method that is run
+        """
+        run_method = getattr(self, command['command'])
+        run_method(*command['data'])
 
     def stop(self):
+        """Sets the stop flag to true after the stop command is received"""
         self.stop = True
 
     def start(self):
+        """Sets the start flag to true after the start command is received"""
         self.start = True
 
-    def capture(self, callback):
+    def capture(self):
+        """
+        Initializes the camera, then scans its input for the target upon
+        receiving the start command and informs the main module once if the
+        target is found and continuously if the target is centered
+        """
         # if we're on the Pi, name the process 'Vision'
         if self.usePiCamera:
             from setproctitle import setproctitle
@@ -56,7 +81,6 @@ class Vision(object):
         self.target = Target()
         self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
 
-        # wait for the start command
         while not self.start:
             time.sleep(0.1)
 
@@ -94,9 +118,9 @@ class Vision(object):
 
             max_level = max(hierarchy_levels)
             # is there a single contour with the highest hierarchy?
-            # If there is and it's got a high area and solidity, then
-            # it's very likely the contour in the center of the target
             if hierarchy_levels.count(max_level) == 1:
+                # if there is and it's got a high area and solidity, then
+                # it's most likely the contour in the center of the target
                 i = hierarchy_levels.index(max_level)
                 if self.are_solidity_and_area_high(cnts[i]):
                     target_cnts.append(cnts[i])
@@ -118,8 +142,9 @@ class Vision(object):
             # draw the contour
             cv2.drawContours(resized, target_cnts, -1, GREEN, 2)
 
-            x, y = -1, -1
+            # did we find any potential target contours?
             if target_cnts:
+                x, y = -1, -1
                 target_contour = self.find_biggest_contour(target_cnts)
                 x, y = self.determine_center(target_contour)
 
@@ -128,17 +153,16 @@ class Vision(object):
                     self.target.y_ratio = y / float(image_height)
                     if not self.target.found:
                         self.target.found = True
-                        self.main_queue.send(Message('target_found',
+                        self.output_queue.send(Message('target_found',
                                                      self.target))
                     else:
                         if 0.45 < self.target.y_ratio < 0.55:
-                            self.main_queue.send(Message('target_centered',
+                            self.output_queue.send(Message('target_centered',
                                                          self.target))
                 cv2.circle(resized, (x, y), 5, YELLOW, -1)
 
             # output target coordinates
-            self.draw_text(resized, 'Y/target Y: {:4f}'
-                           .format(self.target.y_ratio), RED)
+            self.draw_text(resized, 'Target: {:4f} : {:4f}'.format(x, y), RED)
             # show solidity and area
             self.draw_solidity_and_area_on_contours(resized, target_cnts)
 
@@ -164,6 +188,16 @@ class Vision(object):
             print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
 
     def get_thresholded_image(self, resized):
+        """Transforms the input image to grayscale, blur it, normalize it,
+        runs a combination of adaptive Gaussian threshold and Otsu threshold
+        on it, then returns the result as a base for the contour recognition
+
+        Args:
+            resized (image): The image to create a threshold image from
+
+        Returns:
+            Threshold image
+        """
         gray = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
         blurred = cv2.GaussianBlur(gray, (5, 5), 0)
         norm_image = blurred
@@ -176,14 +210,22 @@ class Vision(object):
         #ret, thresh = cv2.threshold(norm_image, 10, 250, cv2.THRESH_OTSU)
         return thresh
 
-    def are_solidity_and_area_high(self, c):
-        area = cv2.contourArea(c)
+    def are_solidity_and_area_high(self, contour):
+        """Checks a contour for high area and solidity values
+
+        Args:
+            contour (numpy array): The contour to check
+
+        Returns:
+            True or False
+        """
+        area = cv2.contourArea(contour)
         solidity_and_area_are_high = False
         if area:
             # compute the convex hull of the contour, then
             # use the area of the original contour and the
             # area of the convex hull to compute the solidity
-            hull = cv2.convexHull(c)
+            hull = cv2.convexHull(contour)
             hullArea = cv2.contourArea(hull)
             solidity = area / float(hullArea)
 
@@ -193,6 +235,13 @@ class Vision(object):
         return solidity_and_area_are_high
 
     def draw_solidity_and_area_on_contours(self, img, contours):
+        """Draws solidity (blue) and area (red) values of the input contour
+        array onto the input image where they are located
+
+        Args:
+            img (image): The image the values should be drawn onto
+            contours (array<numpy array>): The contours whose values to draw
+        """
         for c in contours:
             area = cv2.contourArea(c)
             if area > 0:
@@ -207,18 +256,45 @@ class Vision(object):
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, RED, 2)
 
     def find_smallest_contour(self, contours):
+        """Finds the smallest contour of given contour array
+
+        Args:
+            contours (array<numpy array>): Array of contours to search in
+
+        Returns:
+            The smallest contour (numpy array)
+        """
         # Find the index of the smallest target contour
         areas = [cv2.contourArea(c) for c in contours]
         if len(areas) > 0:
             return contours[np.argmin(areas)]
 
     def find_biggest_contour(self, contours):
+        """Finds the biggest contour of given contour array
+
+        Args:
+            contours (array<numpy array>): Array of contours to search in
+
+        Returns:
+            The biggest contour (numpy array)
+        """
         # Find the index of the biggest target contour
         areas = [cv2.contourArea(c) for c in contours]
         if len(areas) > 0:
             return contours[np.argmax(areas)]
 
     def get_contour_levels(self, hierarchy):
+        """Traverses the tree hierarchy and returns the level of the contours
+        contained therein if the contour is enclosed.
+
+        Args:
+            hierarchy: Output of cv2.findContours(thresh, cv2.RETR_TREE,
+            cv2.CHAIN_APPROX_SIMPLE).
+
+        Returns:
+            Array with the level of every contour with a hierarchy level !=
+            -1, which means the contour is not enclosed
+        """
         contour_levels = []
         for element in hierarchy:
             lvl = 0
@@ -230,11 +306,26 @@ class Vision(object):
         return contour_levels
 
     def draw_text(self, img, msg, col):
+        """Draws text in the desired color at (10, 10) onto the input image
+
+        Args:
+            img (image): The image to draw onto
+            msg (String): The text to draw
+            col ((blue, green, red): Color in BGR format
+        """
         h, _, _ = img.shape
         x, y = 10, h - 10
         cv2.putText(img, msg, (x,y), cv2.FONT_HERSHEY_SIMPLEX, 0.8, col, 2)
 
     def determine_center(self, contour):
+        """Finds the center (x, y) of a given contour
+
+        Args:
+            contour (numpy array): The contour to determine the center of
+
+        Returns:
+            Tuple with x, y values representing the input contour's center
+        """
         cx, cy = -1, -1
         m = cv2.moments(contour)
         m00 = m['m00']
@@ -245,5 +336,4 @@ class Vision(object):
 
 
 if __name__ == '__main__':
-    vision = Vision()
-    vision.capture(mirror=True)
+    pass
