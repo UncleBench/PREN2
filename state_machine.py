@@ -7,8 +7,8 @@ from transitions.extensions import GraphMachine as Machine
 
 class Prachtstueck():
     def __init__(self):
-        self.communication_queue = MessageQueue(callback=None, qname='ps_communication')
-        self.vision_queue = MessageQueue(callback=None, qname='ps_vision')
+        self.communication_queue = MessageQueue(qname='ps_communication')
+        self.vision_queue = MessageQueue(qname='ps_vision')
         self.gui_queue = GUI()
 
     def on_enter_init(self):
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     parser = Parser(prachtstueck)
 
     print "init Message Queue"
-    main_queue = MessageQueue(callback=parser.interpret_command(), qname='ps_main')
+    main_queue = MessageQueue(callback=parser.interpret_command, qname='ps_main')
 
     # init Vision
     print "init Vision"
