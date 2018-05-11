@@ -1,6 +1,7 @@
 from Vision.Vision import Vision
 from Communication.SerialCommunication import StopState, GrabberState
 from MessageQueue.MessageQueue import MessageQueue, Message
+from GUI import GUI
 from Communication.Communication import Communication
 from transitions.extensions import GraphMachine as Machine
 
@@ -8,7 +9,7 @@ class Prachtstueck():
     def __init__(self):
         self.communication_queue = MessageQueue(callback=None, qname='ps_communication')
         self.vision_queue = MessageQueue(callback=None, qname='ps_vision')
-        self.gui_queue = MessageQueue(callback=None, qname='ps_gui')
+        self.gui_queue = GUI()
 
     def on_enter_init(self):
         print("Kommunikation Arduino Greifer, Whisker, Position, Batterie Raspi initialisieren")

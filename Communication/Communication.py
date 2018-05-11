@@ -1,4 +1,5 @@
 from MessageQueue.MessageQueue import MessageQueue, Message
+from GUI import GUI
 from SerialCommunication import SerialCommunication, StopState
 from MotorControl import MotorControl
 from PositionDetermination.PosSensor import PosSensor
@@ -21,8 +22,8 @@ class Communication():
         print "start Communication Process"
         setproctitle("Communication")
 
-        self.main_queue = MessageQueue(callback=None, qname='ps_main')
-        self.gui_queue = MessageQueue(callback=None, qname='ps_gui')
+        self.main_queue = MessageQueue(qname='ps_main')
+        self.gui_queue = GUI()
         self.communication_queue = MessageQueue(callback=self.command_interpreter, qname='ps_communication')
 
         self.position_thread = Thread(target=self.update_position, name="Position Update")
@@ -54,9 +55,9 @@ class Communication():
 
             pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, driven_dist['x'], driven_dist['z'])
 
-            msg = Message("Position", [pos.x, pos.z, battery_voltage])
-            self.gui_queue.send(msg)
-            self.main_queue.send(msg)
+            data = [pos.x, pos.z, battery_voltage]
+            self.gui_queue.update(*data)
+            self.main_queue.send(Message("Position", data))
 
     def command_interpreter(self, command):
         if hasattr(self.motor, command['cmd']):
