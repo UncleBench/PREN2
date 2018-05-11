@@ -19,7 +19,7 @@ PURPLE = (255, 0, 255)
 
 class Vision(object):
     def __init__(self, usePiCamera=False, debug=False):
-        self.stop = False
+        self.stop, self.start = False
         self.usePiCamera = usePiCamera
         self.stream = None
         self.debug = debug
@@ -34,10 +34,14 @@ class Vision(object):
         self.worker.start()
 
     def command_interpreter(self, command):
-        pass
+        meth = getattr(self, command['cmd'])
+        meth(*command['data'])
 
-    def stop_capture(self):
+    def stop(self):
         self.stop = True
+
+    def start(self):
+        self.start = True
 
     def capture(self, callback):
         # if we're on the Pi, name the process 'Vision'
@@ -50,9 +54,12 @@ class Vision(object):
             self.fps = FPS().start()
         self.target = Target()
         self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
-        # wait for the camera to initialize
-        time.sleep(2.0)
-        while True:
+
+        # wait for the start command
+        while not self.start:
+            time.sleep(0.1)
+
+        while not self.stop:
             # if self.debug:
             #     print(time.time())
 
@@ -136,12 +143,11 @@ class Vision(object):
             cv2.imshow('Contours on original image', resized)
 
             # esc to quit
-            if cv2.waitKey(1) == 27 or self.stop:
+            if cv2.waitKey(1) == 27:
                 break
             # A to go frame by frame
             # while cv2.waitKey(1) != 65:
             #     k = 0
-
             if self.debug:
                 # update the fps counter
                 self.fps.update()
