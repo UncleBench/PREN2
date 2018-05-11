@@ -92,6 +92,10 @@ class MotorControl:
     def drive_z(self, distance, speed):
         self.drive(z=distance, speed=speed)
 
+    def drive_z_to_home(self, speed):
+        command = "$J=G90G21 Z0 F" + str(speed)
+        self.set_command(command)
+
     def get_distance_driven(self):
         distance = self.get_pos_decoded()[1]
         return distance
