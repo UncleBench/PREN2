@@ -36,6 +36,7 @@ class Vision(object):
         """
         self.stop_flag = Event()
         self.start_flag = Event()
+        self.shutdown_flag = Event()
         self.usePiCamera = usePiCamera
         self.debug = debug
         self.target = None
@@ -64,10 +65,18 @@ class Vision(object):
     def stop(self):
         """Sets the stop flag to true after the stop command is received"""
         self.stop_flag.set()
+        self.start_flag.clear()
 
     def start(self):
         """Sets the start flag to true after the start command is received"""
         self.start_flag.set()
+        self.stop_flag.clear()
+
+    def shutdown(self):
+        """Sets the start flag to true after the start command is received"""
+        self.shutdown_flag.set()
+        self.start_flag.set()
+        self.stop_flag.set()
 
     def capture(self):
         """
@@ -86,103 +95,107 @@ class Vision(object):
         target = Target()
         self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
 
-        self.start_flag.wait()
+        while not self.shutdown_flag.is_set():
+        
+            self.start_flag.wait()
 
-        while not self.stop_flag.is_set():
-            # if self.debug:
-            #     print(time.time())
+            while not self.stop_flag.is_set():
+                # if self.debug:
+                #     print(time.time())
 
-            img = self.stream.read()
+                img = self.stream.read()
 
-            if self.usePiCamera:
-                img = cv2.flip(img, 1)
+                if self.usePiCamera:
+                    img = cv2.flip(img, 1)
 
-            resized = img[:, 392:904]
-            thresh = self.get_thresholded_image(resized)
+                resized = img[:, 392:904]
+                thresh = self.get_thresholded_image(resized)
 
-            # # display threshold image
-            # cv2.imshow('Thresholded image', thresh)
-            #
-            # edge = cv2.Canny(thresh, 50, 200, 3)
-            # cv2.imshow('Edge image', edge)
+                # # display threshold image
+                # cv2.imshow('Thresholded image', thresh)
+                #
+                # edge = cv2.Canny(thresh, 50, 200, 3)
+                # cv2.imshow('Edge image', edge)
 
-            # find contours
-            _, cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
-                                                  cv2.CHAIN_APPROX_SIMPLE)
+                # find contours
+                _, cnts, hierarchy = cv2.findContours(thresh, cv2.RETR_TREE,
+                                                      cv2.CHAIN_APPROX_SIMPLE)
 
-            # flatten hierarchy array
-            hierarchy = hierarchy[0]
+                # flatten hierarchy array
+                hierarchy = hierarchy[0]
 
-            # get the hierarchy level of every contour and
-            # map the two together
-            hierarchy_levels = self.get_contour_levels(hierarchy)
+                # get the hierarchy level of every contour and
+                # map the two together
+                hierarchy_levels = self.get_contour_levels(hierarchy)
 
-            # initialize target contours
-            target_cnts = []
+                # initialize target contours
+                target_cnts = []
 
-            max_level = max(hierarchy_levels)
-            # is there a single contour with the highest hierarchy?
-            if hierarchy_levels.count(max_level) == 1:
-                # if there is and it's got a high area and solidity, then
-                # it's most likely the contour in the center of the target
-                i = hierarchy_levels.index(max_level)
-                if self.are_solidity_and_area_high(cnts[i]):
-                    target_cnts.append(cnts[i])
-            else:
-                # if there's more than one, we need to filter further
-                if hierarchy_levels.count(max_level) > 1:
-                    i = -1
-                    for hierarchy_level in hierarchy_levels:
-                        i += 1
-                        if hierarchy_level == max_level:
-                            # filter out contours that don't have 4 corners
-                            epsilon = cv2.arcLength(cnts[i], True)
-                            approx = cv2.approxPolyDP(cnts[i], 0.01 * epsilon,
-                                                      True)
-                            if len(approx) == 4:
-                                if self.are_solidity_and_area_high(cnts[i]):
-                                    target_cnts.append(cnts[i])
+                max_level = max(hierarchy_levels)
+                # is there a single contour with the highest hierarchy?
+                if hierarchy_levels.count(max_level) == 1:
+                    # if there is and it's got a high area and solidity, then
+                    # it's most likely the contour in the center of the target
+                    i = hierarchy_levels.index(max_level)
+                    if self.are_solidity_and_area_high(cnts[i]):
+                        target_cnts.append(cnts[i])
+                else:
+                    # if there's more than one, we need to filter further
+                    if hierarchy_levels.count(max_level) > 1:
+                        i = -1
+                        for hierarchy_level in hierarchy_levels:
+                            i += 1
+                            if hierarchy_level == max_level:
+                                # filter out contours that don't have 4 corners
+                                epsilon = cv2.arcLength(cnts[i], True)
+                                approx = cv2.approxPolyDP(cnts[i], 0.01 * epsilon,
+                                                          True)
+                                if len(approx) == 4:
+                                    if self.are_solidity_and_area_high(cnts[i]):
+                                        target_cnts.append(cnts[i])
 
-            # draw the contour
-            cv2.drawContours(resized, target_cnts, -1, GREEN, 2)
+                # draw the contour
+                cv2.drawContours(resized, target_cnts, -1, GREEN, 2)
 
-            x, y = -1, -1
-            # did we find any potential target contours?
-            if target_cnts:
-                target_contour = self.find_biggest_contour(target_cnts)
-                x, y = self.determine_center(target_contour)
+                x, y = -1, -1
+                # did we find any potential target contours?
+                if target_cnts:
+                    target_contour = self.find_biggest_contour(target_cnts)
+                    x, y = self.determine_center(target_contour)
 
-                image_height, _, _ = resized.shape
-                if y != -1:
-                    target.y_ratio = y / float(image_height)
-                    if not target.found:
-                        target.found = True
-                        self.output_queue.send(Message('target_found',
-                                                     target))
-                    else:
-                        if 0.45 < target.y_ratio < 0.55:
-                            self.output_queue.send(Message('target_centered',
+                    image_height, _, _ = resized.shape
+                    if y != -1:
+                        target.y_ratio = y / float(image_height)
+                        if not target.found:
+                            target.found = True
+                            self.output_queue.send(Message('target_found',
                                                          target))
-                cv2.circle(resized, (x, y), 5, YELLOW, -1)
+                        else:
+                            if 0.45 < target.y_ratio < 0.55:
+                                self.output_queue.send(Message('target_centered',
+                                                             target))
+                    cv2.circle(resized, (x, y), 5, YELLOW, -1)
 
-            # output target coordinates
-            self.draw_text(resized, 'Target: {:4f} : {:4f}'.format(x, y), RED)
-            # show solidity and area
-            self.draw_solidity_and_area_on_contours(resized, target_cnts)
+                # output target coordinates
+                self.draw_text(resized, 'Target: {:4f} : {:4f}'.format(x, y), RED)
+                # show solidity and area
+                self.draw_solidity_and_area_on_contours(resized, target_cnts)
 
-            # display original image with recognized contours
-            cv2.imshow('Contours on original image', resized)
+                # display original image with recognized contours
+                cv2.imshow('Contours on original image', resized)
 
-            # esc to quit
-            if cv2.waitKey(1) == 27:
-                break
-            # A to go frame by frame
-            # while cv2.waitKey(1) != 65:
-            #     k = 0
-            if self.debug:
-                # update the fps counter
-                self.fps.update()
-        cv2.destroyAllWindows()
+                # esc to quit
+                if cv2.waitKey(1) == 27:
+                    break
+                # A to go frame by frame
+                # while cv2.waitKey(1) != 65:
+                #     k = 0
+                if self.debug:
+                    # update the fps counter
+                    self.fps.update()
+
+            cv2.destroyAllWindows()
+
         self.stream.stop()
         self.input_queue.shutdown()
 
