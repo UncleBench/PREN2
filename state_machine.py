@@ -27,7 +27,7 @@ class Prachtstueck():
         print("Kamera auf 20 Grad setzen")
 
         print("Programm fuer Vision starten")
-        self.communication_queue(Message('home', []))
+        self.communication_queue(Message('home'))
         self.init_finished()
 
     def on_enter_to_load(self):
@@ -53,21 +53,21 @@ class Prachtstueck():
 
     def on_enter_to_target(self):
         print("Fahren solange Zielplattform nicht in unterer Bildhaelfte")
-        self.vision_queue(Message('start', []))
+        self.vision_queue(Message('start'))
         self.communication_queue.send(Message('drive_x', [2000, 1000]))
 
     def on_enter_center_target(self):
         print("Kamera bewegen nach unten")
         print("Kamera in Ablademodus setzen")
 
-        self.communication_queue.send(Message('stop', []))
+        self.communication_queue.send(Message('stop'))
         self.communication_queue.send(Message('drive_x', [200, 1000]))
         print("Fahren solange Zielplattform nicht mittig")
 
     def on_enter_set_load(self):
         print("Greifer nach unten")
-        self.vision_queue(Message('stop', []))
-        self.communication_queue.send(Message('stop', []))
+        self.vision_queue(Message('stop'))
+        self.communication_queue.send(Message('stop'))
         self.communication_queue.send(Message('drive_z', [-(self.position.z-20), 1000]))
 
     def on_enter_release_load(self):
@@ -92,7 +92,7 @@ class Prachtstueck():
 
     def on_enter_shutdown(self):
         print("Stop")
-        self.communication_queue.send(Message('stop', []))
+        self.communication_queue.send(Message('stop'))
         self.vision_queue.shutdown()
         self.communication_queue.shutdown()
         self.gui_queue.shutdown()
