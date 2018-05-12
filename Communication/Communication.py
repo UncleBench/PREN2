@@ -73,4 +73,7 @@ class Communication():
             meth = getattr(self.motor, command['cmd'])
         else:
             meth = getattr(self.sens_act, command['cmd'])
-        meth(*command['data'])
+        if hasattr(command, 'data'):
+            meth(*command['data'])
+        else:
+            meth()
