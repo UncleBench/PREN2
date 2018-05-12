@@ -4,10 +4,10 @@ from Vision.Vision import Vision
 
 
 def interpret_command(msg):
-    if msg['command'] is 'target_found':
+    if msg['command'] == 'target_found':
         print "target found"
-    if msg['command'] is 'target_centered':
-        print "target centered"
+    if msg['command'] == 'target_centered':
+        print "target centered @ %f" % msg['data']['y_ratio']
 
 if __name__ == '__main__':
     main_queue = MessageQueue(callback=interpret_command, qname='ps_main')

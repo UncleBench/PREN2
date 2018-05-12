@@ -99,56 +99,56 @@ class Prachtstueck():
 
     def interpret_command(self, msg):
         if self.is_sleep():
-            if msg['command'] is 'home':
+            if msg['command'] == 'home':
                 self.wake_up()
 
         if self.is_init():
-            if msg['command'] is 'init_finished':
+            if msg['command'] == 'init_finished':
                 self.init_finished()
 
         if self.is_wait_for_start():
-            if msg['command'] is 'start':
+            if msg['command'] == 'start':
                 self.start()
 
         if self.is_to_load():
-            if msg['command'] is 'position':
+            if msg['command'] == 'position':
                 print "Position:", msg['data']
 
         if self.is_insert_load():
-            if msg['command'] is 'position':
+            if msg['command'] == 'position':
                 print "position:", msg['data']
 
         if self.is_to_target():
-            if msg['command'] is 'target_found':
+            if msg['command'] == 'target_found':
                 print "target found"
                 self.target_is_close()
 
         if self.is_center_target():
-            if msg['command'] is 'target_centered':
+            if msg['command'] == 'target_centered':
                 print "target centered"
                 self.target_is_centered()
 
         if self.slow_to_stop():
-            if msg['command'] is 'stop':
+            if msg['command'] == 'stop':
                 self.to_shutdown()
 
-        if msg['command'] is 'motor_state':
+        if msg['command'] == 'motor_state':
             try:
                 self.drive_finished()
             except MachineError:
                 print "drive_finished() not valid in this state"
 
-        if msg['command'] is 'position':
+        if msg['command'] == 'position':
             self.position = msg['data'][0]
             self.batteryVoltage = msg['data'][1]
 
-        elif msg['command'] is 'target_centered':
+        elif msg['command'] == 'target_centered':
             print "target centered"
-        #if command is "wake_up":
+        #if command == "wake_up":
         #    self.state_machine.wake_up()
-        #elif command is "init_finished":
+        #elif command == "init_finished":
         #    self.state_machine.init_finished()
-        #elif command is "start":
+        #elif command == "start":
         #    self.state_machine.start()
         #else:
         #    print "Can't parse command: ", command
