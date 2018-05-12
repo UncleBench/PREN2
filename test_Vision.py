@@ -14,4 +14,4 @@ if __name__ == '__main__':
     vision_queue = MessageQueue(qname='ps_vision')
     vision = Vision(usePiCamera=False, debug=False)
     time.sleep(2.0)
-    vision_queue(Message('start', []))
+    vision_queue.send(Message('start'))
