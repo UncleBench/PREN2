@@ -83,7 +83,7 @@ class Vision(object):
         # FPS counter for debug mode
         if self.debug:
             self.fps = FPS().start()
-        self.target = Target()
+        target = Target()
         self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
 
         self.start_flag.wait()
@@ -154,15 +154,15 @@ class Vision(object):
 
                 image_height, _, _ = resized.shape
                 if y != -1:
-                    self.target.y_ratio = y / float(image_height)
-                    if not self.target.found:
-                        self.target.found = True
+                    target.y_ratio = y / float(image_height)
+                    if not target.found:
+                        target.found = True
                         self.output_queue.send(Message('target_found',
-                                                     self.target))
+                                                     target))
                     else:
-                        if 0.45 < self.target.y_ratio < 0.55:
+                        if 0.45 < target.y_ratio < 0.55:
                             self.output_queue.send(Message('target_centered',
-                                                         self.target))
+                                                         target))
                 cv2.circle(resized, (x, y), 5, YELLOW, -1)
 
             # output target coordinates
