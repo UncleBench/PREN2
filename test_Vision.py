@@ -13,7 +13,7 @@ if __name__ == '__main__':
     main_queue = MessageQueue(callback=interpret_command, qname='ps_main')
     vision_queue = MessageQueue(qname='ps_vision')
     try:
-        vision = Vision(usePiCamera=True, debug=False)
+        vision = Vision(usePiCamera=True, debug=True)
         time.sleep(2.0)
         vision_queue.send(Message('start'))
         time.sleep(15.0)

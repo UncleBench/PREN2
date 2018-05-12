@@ -89,13 +89,13 @@ class Vision(object):
             from setproctitle import setproctitle
             setproctitle('Vision')
 
-        # FPS counter for debug mode
-        if self.debug:
-            self.fps = FPS().start()
-        target = Target()
         self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
 
         while not self.shutdown_flag.is_set():
+            # FPS counter for debug mode
+            if self.debug:
+                self.fps = FPS().start()
+            target = Target()
         
             self.start_flag.wait()
 
@@ -182,7 +182,7 @@ class Vision(object):
                 self.draw_solidity_and_area_on_contours(resized, target_cnts)
 
                 # display original image with recognized contours
-                cv2.imshow('Contours on original image', resized)
+                #cv2.imshow('Contours on original image', resized)
 
                 # esc to quit
                 if cv2.waitKey(1) == 27:
@@ -194,16 +194,16 @@ class Vision(object):
                     # update the fps counter
                     self.fps.update()
 
-            cv2.destroyAllWindows()
+            #cv2.destroyAllWindows()
+            if self.debug:
+                # stop the timer and display FPS information
+                self.fps.stop()
+                print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
+                print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
 
         self.stream.stop()
         self.input_queue.shutdown()
 
-        if self.debug:
-            # stop the timer and display FPS information
-            self.fps.stop()
-            print("[INFO] elasped time: {:.2f}".format(self.fps.elapsed()))
-            print("[INFO] approx. FPS: {:.2f}".format(self.fps.fps()))
 
     def get_thresholded_image(self, resized):
         """Transforms the input image to grayscale, blur it, normalize it,
