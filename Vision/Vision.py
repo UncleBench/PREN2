@@ -34,10 +34,12 @@ class Vision(object):
         Returns:
             Vision: instance
         """
-        self.stop, self.start = False
+        self.stop = False
+        self.start = False
         self.usePiCamera = usePiCamera
         self.debug = debug
-        self.target, self.stream = None
+        self.target = None
+        self.stream = None
 
         # These queues are the interfaces to the main module
         self.output_queue = MessageQueue(qname='ps_main')
