@@ -1,6 +1,6 @@
 import time
 from MessageQueue.MessageQueue import MessageQueue, Message
-from Vision import Vision
+from Vision.Vision import Vision
 
 
 def interpret_command(msg):
