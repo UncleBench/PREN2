@@ -34,8 +34,8 @@ class Vision(object):
         Returns:
             Vision: instance
         """
-        self.stop = False
-        self.start = False
+        self.stop_flag = False
+        self.start_flag = False
         self.usePiCamera = usePiCamera
         self.debug = debug
         self.target = None
@@ -63,11 +63,11 @@ class Vision(object):
 
     def stop(self):
         """Sets the stop flag to true after the stop command is received"""
-        self.stop = True
+        self.stop_flag = True
 
     def start(self):
         """Sets the start flag to true after the start command is received"""
-        self.start = True
+        self.start_flag = True
 
     def capture(self):
         """
@@ -86,10 +86,10 @@ class Vision(object):
         self.target = Target()
         self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
 
-        while not self.start:
+        while not self.start_flag:
             time.sleep(0.1)
 
-        while not self.stop:
+        while not self.stop_flag:
             # if self.debug:
             #     print(time.time())
 
