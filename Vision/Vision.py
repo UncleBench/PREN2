@@ -146,9 +146,9 @@ class Vision(object):
             # draw the contour
             cv2.drawContours(resized, target_cnts, -1, GREEN, 2)
 
+            x, y = -1, -1
             # did we find any potential target contours?
             if target_cnts:
-                x, y = -1, -1
                 target_contour = self.find_biggest_contour(target_cnts)
                 x, y = self.determine_center(target_contour)
 
