@@ -184,6 +184,7 @@ class Vision(object):
                 self.fps.update()
         cv2.destroyAllWindows()
         self.stream.stop()
+        self.input_queue.shutdown()
 
         if self.debug:
             # stop the timer and display FPS information

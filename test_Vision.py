@@ -19,4 +19,6 @@ if __name__ == '__main__':
         vision.worker.join()
         main_queue.shutdown()
     except KeyboardInterrupt:
+        vision_queue.send(Message('stop'))
+        main_queue.shutdown()
         exit()
