@@ -5,7 +5,7 @@ from imutils.video import FPS
 from MessageQueue.MessageQueue import MessageQueue, Message
 from VideoStream import VideoStream
 from Target import Target
-from multiprocessing import Process
+from multiprocessing import Process, Event
 
 
 # constants for display output
@@ -34,8 +34,8 @@ class Vision(object):
         Returns:
             Vision: instance
         """
-        self.stop_flag = False
-        self.start_flag = False
+        self.stop_flag = Event()
+        self.start_flag = Event()
         self.usePiCamera = usePiCamera
         self.debug = debug
         self.target = None
@@ -63,11 +63,11 @@ class Vision(object):
 
     def stop(self):
         """Sets the stop flag to true after the stop command is received"""
-        self.stop_flag = True
+        self.stop_flag.set()
 
     def start(self):
         """Sets the start flag to true after the start command is received"""
-        self.start_flag = True
+        self.start_flag.set()
 
     def capture(self):
         """
@@ -86,10 +86,9 @@ class Vision(object):
         self.target = Target()
         self.stream = VideoStream(usePiCamera=self.usePiCamera).start()
 
-        while not self.start_flag:
-            time.sleep(0.1)
+        self.start_flag.wait()
 
-        while not self.stop_flag:
+        while not self.stop_flag.is_set():
             # if self.debug:
             #     print(time.time())
 
