@@ -12,6 +12,11 @@ def interpret_command(msg):
 if __name__ == '__main__':
     main_queue = MessageQueue(callback=interpret_command, qname='ps_main')
     vision_queue = MessageQueue(qname='ps_vision')
-    vision = Vision(usePiCamera=True, debug=False)
-    time.sleep(2.0)
-    vision_queue.send(Message('start'))
+    try:
+        vision = Vision(usePiCamera=True, debug=False)
+        time.sleep(2.0)
+        vision_queue.send(Message('start'))
+        vision.worker.join()
+        main_queue.shutdown()
+    except KeyboardInterrupt:
+        exit()
