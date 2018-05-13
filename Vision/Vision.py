@@ -57,8 +57,8 @@ class Vision(object):
             command (Message): Contains name and args of method that is run
         """
         run_method = getattr(self, command['command'])
-        if hasattr(command, 'data'):
-            run_method(*command['data'])
+        if 'data' in command:
+            run_method(**command['data'])
         else:
             run_method()
 
