@@ -9,7 +9,7 @@ class MotorControl:
 
     def init_communication(self, com, baud):
         self.ser_com = serial.Serial(com, baud)
-        self.ser_com.timeout = 5
+        self.ser_com.timeout = 1
         line = ""
         while "Grbl 1.1f ['$' for help]" not in line:
             time.sleep(0.3)
@@ -18,6 +18,7 @@ class MotorControl:
 
         if "[MSG:'$H'|'$X' to unlock]" in self.ser_com.readline():
             self.set_command("$X")
+        self.ser_com.timeout = None
 
     def set_command(self, command):
         self.ser_com.write(command + "\n")
