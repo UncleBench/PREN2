@@ -138,7 +138,8 @@ class Vision(object):
                     # it's most likely the contour in the center of the target
                     i = hierarchy_levels.index(max_level)
                     if self.are_solidity_and_area_high(cnts[i]):
-                        target_cnts.append(cnts[i])
+                        if self.is_reasonably_square(cnts[i]):
+                            target_cnts.append(cnts[i])
                 else:
                     # if there's more than one, we need to filter further
                     if hierarchy_levels.count(max_level) > 1:
@@ -152,7 +153,8 @@ class Vision(object):
                                                           True)
                                 if len(approx) == 4:
                                     if self.are_solidity_and_area_high(cnts[i]):
-                                        target_cnts.append(cnts[i])
+                                        if self.is_reasonably_square(cnts[i]):
+                                            target_cnts.append(cnts[i])
 
                 # draw the contour
                 cv2.drawContours(resized, target_cnts, -1, GREEN, 2)
@@ -227,6 +229,11 @@ class Vision(object):
                                     cv2.THRESH_OTSU)
         #ret, thresh = cv2.threshold(norm_image, 10, 250, cv2.THRESH_OTSU)
         return thresh
+
+    def is_reasonably_square(self, contour):
+        x,y,w,h = cv2.boundingRect(contour)
+        aspect_ratio = float(w)/h
+        return 0.75 < aspect_ratio < 1.33
 
     def are_solidity_and_area_high(self, contour):
         """Checks a contour for high area and solidity values
