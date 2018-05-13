@@ -11,6 +11,8 @@ class MotorControl:
         self.ser_com = serial.Serial(com, baud)
         self.ser_com.timeout = 1
         line = ""
+        # send soft-reset to initalize Grbl
+        self.ser_com.write('\x18')
         while "Grbl 1.1f ['$' for help]" not in line:
             time.sleep(0.3)
             line = self.ser_com.readline()
