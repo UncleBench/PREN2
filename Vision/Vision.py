@@ -171,7 +171,7 @@ class Vision(object):
                             self.output_queue.send(Message('target_found',
                                                          target))
                         else:
-                            if 0.45 < target.y_ratio < 0.55:
+                            if 0.49 < target.y_ratio < 0.51:
                                 self.output_queue.send(Message('target_centered',
                                                              target))
                     cv2.circle(resized, (x, y), 5, YELLOW, -1)
