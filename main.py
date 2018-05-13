@@ -7,6 +7,11 @@ from transitions.extensions import GraphMachine as Machine
 from transitions import MachineError
 from time import sleep
 
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('transitions').setLevel(logging.INFO)
+logging.getLogger('socketio').setLevel(logging.ERROR)
+
 class Prachtstueck():
     def __init__(self):
         self.communication_queue = MessageQueue(qname='ps_communication')
