@@ -18,7 +18,7 @@ class Prachtstueck():
         self.vision_queue = MessageQueue(qname='ps_vision')
         self.gui_queue = GUI()
         print "init Message Queue"
-        main_queue = MessageQueue(callback=self.interpret_command, qname='ps_main')
+        self.main_queue = MessageQueue(callback=self.interpret_command, qname='ps_main')
 
         self.position = Position(0, 0, 0)
         self.batteryVoltage = 0.0
@@ -97,9 +97,9 @@ class Prachtstueck():
     def on_enter_shutdown(self):
         print("Stop")
         self.communication_queue.send(Message('stop'))
-        self.vision_queue.shutdown()
-        self.communication_queue.shutdown()
-        self.gui_queue.shutdown()
+        self.vision_queue.send(Message('shutdown'))
+        self.communication_queue.send(Message('shutdown'))
+        self.main_queue.shutdown()
 
     def interpret_command(self, msg):
         if self.is_sleep():
