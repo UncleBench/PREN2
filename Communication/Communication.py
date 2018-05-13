@@ -23,12 +23,14 @@ class Communication():
         self.last_state = None
         self.main_queue = MessageQueue(qname='ps_main')
         self.gui_queue = GUI()
-        self.communication_queue = MessageQueue(callback=self.command_interpreter, qname='ps_communication')
 
         self.position_thread = Thread(target=self.update_position, name="Position Update")
         self.pos_sensor = PosSensor()
         self.sens_act = SerialCommunication(com=self.sens_act_com)
         self.motor = MotorControl(com=self.motor_com)
+
+        self.communication_queue = MessageQueue(callback=self.command_interpreter, qname='ps_communication')
+
         self.sens_act_lock = Lock()
         self.motor_lock = Lock()
         self.position_thread = Thread(target=self.update_position, name="Position Update",
