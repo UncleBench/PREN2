@@ -3,7 +3,7 @@ from GUI import GUI
 from SerialCommunication import SerialCommunication, StopState
 from MotorControl import MotorControl
 from PositionDetermination.PosSensor import PosSensor
-from multiprocessing import Process
+from multiprocessing import Process, Event
 from threading import Thread, Lock
 from time import sleep
 from setproctitle import setproctitle
@@ -12,9 +12,13 @@ class Communication():
     def __init__(self, sens_act_com, motor_com):
         self.sens_act_com = sens_act_com
         self.motor_com = motor_com
+        self.shutdown_flag = Event()
 
         self.worker = Process(target=self.initiate_communication, name='Communication')
         self.worker.start()
+
+    def shutdown(self):
+        self.shutdown_flag.set()
 
     def initiate_communication(self):
         print "start Communication Process"
@@ -39,7 +43,7 @@ class Communication():
 
     def update_position(self, sens_act_lock, motor_lock):
         print "start position update thread"
-        while True:
+        while not self.shutdown_flag.is_set():
             sleep(0.2)
             sens_act_lock.acquire()
             raw_alpha = self.sens_act.getRawAlpha()
@@ -69,6 +73,8 @@ class Communication():
             self.main_queue.send(Message("Position", data))
 
             self.last_state = state
+
+        self.communication_queue.shutdown()
 
     def command_interpreter(self, command):
         if hasattr(self.motor, command['command']):

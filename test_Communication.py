@@ -12,8 +12,10 @@ if __name__ == '__main__':
     try:
         comm = Communication(sens_act_com='/dev/SensorActor', motor_com='/dev/Motor')
         time.sleep(15.0)
+        comm.shutdown()
         comm.worker.join()
         main_queue.shutdown()
     except KeyboardInterrupt:
+        comm.shutdown()
         main_queue.shutdown()
         exit()
