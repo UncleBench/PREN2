@@ -1,5 +1,4 @@
 from Vision.Vision import Vision
-from Communication.SerialCommunication import StopState
 from PositionDetermination.PosSensor import Position
 from MessageQueue.MessageQueue import MessageQueue, Message
 from GUI import GUI
@@ -84,11 +83,11 @@ class Prachtstueck():
     def on_enter_fast_to_stop(self):
         print("Berechne restliche Fahrt")
         print("Berechnete Strecke fahren")
-        self.communication_queue.send(Message('drive_x', [self.position.s-20, 1000]))
+        self.communication_queue.send(Message('drive_x', [self.position.x-20, 1000]))
 
     def on_enter_slow_to_stop(self):
         print("Langsam fahren solange Stopp nicht erreicht")
-        self.communication_queue.send(Message('drive_x', [self.position.s+10, 1000]))
+        self.communication_queue.send(Message('drive_x', [self.position.x+10, 1000]))
 
     def on_enter_shutdown(self):
         print("Stop")
@@ -110,14 +109,6 @@ class Prachtstueck():
             if msg['command'] == 'start':
                 self.start()
 
-        if self.is_to_load():
-            if msg['command'] == 'position':
-                print "Position:", msg['data']
-
-        if self.is_insert_load():
-            if msg['command'] == 'position':
-                print "position:", msg['data']
-
         if self.is_to_target():
             if msg['command'] == 'target_found':
                 print "target found"
@@ -128,30 +119,26 @@ class Prachtstueck():
                 print "target centered"
                 self.target_is_centered()
 
-        if self.slow_to_stop():
-            if msg['command'] == 'stop':
-                self.to_shutdown()
+        if msg['command'] == 'stop':
+            self.to_shutdown()
 
         if msg['command'] == 'motor_state':
-            try:
-                self.drive_finished()
-            except MachineError:
-                print "drive_finished() not valid in this state"
+            if msg['data'] == 'IDLE':
+                try:
+                    self.drive_finished()
+                except MachineError:
+                    print "drive_finished() not valid in this state"
 
-        if msg['command'] == 'position':
-            self.position = msg['data'][0]
-            self.batteryVoltage = msg['data'][1]
+        if msg['command'] == 'Position':
+            self.position.x = msg['data'][0]
+            self.position.z = msg['data'][1]
+            self.batteryVoltage = msg['data'][2]
 
-        elif msg['command'] == 'target_centered':
-            print "target centered"
-        #if command == "wake_up":
-        #    self.state_machine.wake_up()
-        #elif command == "init_finished":
-        #    self.state_machine.init_finished()
-        #elif command == "start":
-        #    self.state_machine.start()
-        #else:
-        #    print "Can't parse command: ", command
+        if msg['command'] == 'goto':
+            print "goto command is not implemented yet"
+
+        if (msg['command'] == 'drive') or (msg['command'] == 'set_camera'):
+            self.communication_queue.send(msg)
 
 if __name__ == '__main__':
 

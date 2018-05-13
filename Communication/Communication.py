@@ -18,7 +18,6 @@ class Communication():
         self.motor_lock = RLock()
         self.worker.start()
 
-
     def initiate_communication(self):
         print "start Communication Process"
         setproctitle("Communication")
@@ -52,14 +51,14 @@ class Communication():
             self.motor_lock.release()
 
             if stop_state is StopState.STOP:
-                self.gui_queue.send(Message('stop', []))
-                self.main_queue.send(Message('stop', []))
+                self.gui_queue.send(Message('stop'))
+                self.main_queue.send(Message('stop'))
 
             state = driven_dist[0]
             pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, 343.46-driven_dist[1]['x']/10, driven_dist[1]['z']/10)
 
             if self.last_state != state:
-                self.gui_queue.send(Message('motor_state', [state]))
+                self.gui_queue.send(Message('motor_state', state))
 
             data = [pos.x, pos.z, battery_voltage]
             self.gui_queue.update(*data)
@@ -69,12 +68,12 @@ class Communication():
             self.last_state = state
 
     def command_interpreter(self, command):
-        if hasattr(self.motor, command['cmd']):
-            meth = getattr(self.motor, command['cmd'])
-        elif hasattr(self.sens_act, command['cmd']):
-            meth = getattr(self.sens_act, command['cmd'])
-        elif hasattr(self, command['cmd']):
-            meth = getattr(self, command['cmd'])
+        if hasattr(self.motor, command['command']):
+            meth = getattr(self.motor, command['command'])
+        elif hasattr(self.sens_act, command['command']):
+            meth = getattr(self.sens_act, command['command'])
+        elif hasattr(self, command['command']):
+            meth = getattr(self, command['command'])
         else:
             raise ValueError('Unknow command')
         if hasattr(command, 'data'):
