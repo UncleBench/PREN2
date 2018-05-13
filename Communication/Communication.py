@@ -65,7 +65,7 @@ class Communication():
             pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, 343.46-driven_dist[1]['x']/10, driven_dist[1]['z']/10)
 
             if self.last_state != state:
-                self.gui_queue.send(Message('motor_state', state))
+                self.main_queue.send(Message('motor_state', state))
 
             data = [pos.x, pos.z, battery_voltage]
             self.gui_queue.update(*data)
