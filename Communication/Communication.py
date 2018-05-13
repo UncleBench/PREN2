@@ -4,7 +4,7 @@ from SerialCommunication import SerialCommunication, StopState
 from MotorControl import MotorControl
 from PositionDetermination.PosSensor import PosSensor
 from multiprocessing import Process
-from threading import Thread, RLock
+from threading import Thread, Lock
 from time import sleep
 from setproctitle import setproctitle
 
@@ -14,8 +14,6 @@ class Communication():
         self.motor_com = motor_com
 
         self.worker = Process(target=self.initiate_communication, name='Communication')
-        self.sens_act_lock = RLock()
-        self.motor_lock = RLock()
         self.worker.start()
 
     def initiate_communication(self):
@@ -31,24 +29,28 @@ class Communication():
         self.pos_sensor = PosSensor()
         self.sens_act = SerialCommunication(com=self.sens_act_com)
         self.motor = MotorControl(com=self.motor_com)
+        self.sens_act_lock = Lock()
+        self.motor_lock = Lock()
+        self.position_thread = Thread(target=self.update_position, name="Position Update",
+                                        args=(self.sens_act_lock, self.motor_lock))
         self.position_thread.start()
         self.position_thread.join()
 
-    def update_position(self):
+    def update_position(self, sens_act_lock, motor_lock):
         print "start position update thread"
         while True:
             sleep(1)
-            self.sens_act_lock.acquire()
+            sens_act_lock.acquire()
             raw_alpha = self.sens_act.getRawAlpha()
             raw_beta = self.sens_act.getRawBeta()
             battery_voltage = self.sens_act.getBatteryVoltage()
             stop_state = self.sens_act.getStopState()
-            self.sens_act_lock.release()
+            sens_act_lock.release()
 
-            self.motor_lock.acquire()
+            motor_lock.acquire()
             #driven_dist = self.motor.get_pos_decoded()
             driven_dist = ("Idle", {'x': 20.0, 'z': 20.0})
-            self.motor_lock.release()
+            motor_lock.release()
 
             if stop_state is StopState.STOP:
                 self.gui_queue.send(Message('stop'))
@@ -70,13 +72,25 @@ class Communication():
     def command_interpreter(self, command):
         if hasattr(self.motor, command['command']):
             meth = getattr(self.motor, command['command'])
+            self.sens_act_lock.acquire()
+            if 'data' in command:
+                meth(**command['data'])
+            else:
+                meth()
+            self.sens_act_lock.release()
         elif hasattr(self.sens_act, command['command']):
             meth = getattr(self.sens_act, command['command'])
+            self.motor_lock.acquire()
+            if 'data' in command:
+                meth(**command['data'])
+            else:
+                meth()
+            self.motor_lock.release()
         elif hasattr(self, command['command']):
             meth = getattr(self, command['command'])
+            if 'data' in command:
+                meth(**command['data'])
+            else:
+                meth()
         else:
             raise ValueError('Unknown command')
-        if 'data' in command:
-            meth(**command['data'])
-        else:
-            meth()
