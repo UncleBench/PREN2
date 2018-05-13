@@ -25,74 +25,78 @@ class Prachtstueck():
 
     def on_enter_init(self):
         print("Kommunikation Arduino Greifer, Whisker, Position, Batterie Raspi initialisieren")
+        self.communication_queue.send(Message('setGrabber', [100]))
 
         print("Arduino Motorensteuerung initialisieren und kalibrieren")
+        self.communication_queue.send(Message('home'))
 
         print("Kamera auf 20 Grad setzen")
+        self.communication_queue.send(Message('set_camera', [72]))
 
         print("Programm fuer Vision starten")
-        self.communication_queue(Message('home'))
+
         self.init_finished()
 
     def on_enter_to_load(self):
         print("Zum Wuerfel fahren and Greifer nach unten")
-        self.communication_queue.send(Message('drive', [30, - (self.position.z-20), 1000]))
+        self.communication_queue.send(Message('drive', [300, -300, 3500])) #- (self.position.z-20)
 
     def on_enter_insert_load(self):
         print("Nach vorne fahren ca 2cm")
-        self.communication_queue.send(Message('drive_x', [20, 1000]))
+        self.communication_queue.send(Message('drive_x', [20, 3500]))
 
     def on_enter_grab_load(self):
         print("Wuerfel greifen")
-        self.communication_queue.send(Message('setGrabber', [50]))
+        self.communication_queue.send(Message('setGrabber', [9]))
         print("Koordinatenanzeige starten")
         self.gui_queue.send(Message('show_coord', True))
-        sleep(2)
+        sleep(1)
         self.load_grabbed()
 
 
     def on_enter_lift_load(self):
         print("Greifer nach oben")
-        self.communication_queue.send(Message('drive_z_to_home', [1000]))
+        self.communication_queue.send(Message('drive_z_to_home', [10000]))
 
     def on_enter_to_target(self):
         print("Fahren solange Zielplattform nicht in unterer Bildhaelfte")
-        self.vision_queue(Message('start'))
-        self.communication_queue.send(Message('drive_x', [2000, 1000]))
+        self.vision_queue.send(Message('start'))
+        self.communication_queue.send(Message('drive_x', [2000, 8000]))
 
     def on_enter_center_target(self):
         print("Kamera bewegen nach unten")
         print("Kamera in Ablademodus setzen")
 
         self.communication_queue.send(Message('stop'))
-        self.communication_queue.send(Message('drive_x', [200, 1000]))
+        self.communication_queue.send(Message('set_camera', [90]))
+        self.communication_queue.send(Message('drive_x', [400, 2000]))
         print("Fahren solange Zielplattform nicht mittig")
 
     def on_enter_set_load(self):
         print("Greifer nach unten")
-        self.vision_queue(Message('stop'))
+        self.vision_queue.send(Message('stop'))
         self.communication_queue.send(Message('stop'))
-        self.communication_queue.send(Message('drive_z', [-(self.position.z-20), 1000]))
+        self.communication_queue.send(Message('drive', [30, -300, 3500])) #-(self.position.z-20)
 
     def on_enter_release_load(self):
         print("Wuerfel loslassen")
-        self.communication_queue.send(Message('setGrabber', [9]))
+        self.communication_queue.send(Message('setGrabber', [100]))
         sleep(2)
         self.gui_queue.send(Message('show_coord', False))
         self.load_released()
 
     def on_enter_lift_grabber(self):
         print("Greifer nach oben")
-        self.communication_queue.send(Message('drive_z_to_home', [1000]))
+        self.communication_queue.send(Message('drive_z_to_home', [10000]))
 
     def on_enter_fast_to_stop(self):
         print("Berechne restliche Fahrt")
         print("Berechnete Strecke fahren")
-        self.communication_queue.send(Message('drive_x', [self.position.x-20, 1000]))
+        self.communication_queue.send(Message('drive_x', [500, 10000])) #self.position.x-20
 
     def on_enter_slow_to_stop(self):
         print("Langsam fahren solange Stopp nicht erreicht")
-        self.communication_queue.send(Message('drive_x', [self.position.x+10, 1000]))
+        self.communication_queue.send(Message('drive_x', [50, 1000]))
 
     def on_enter_shutdown(self):
         print("Stop")
@@ -128,7 +132,7 @@ class Prachtstueck():
             self.to_shutdown()
 
         if msg['command'] == 'motor_state':
-            if msg['data'] == 'IDLE':
+            if msg['data'] == 'Idle':
                 try:
                     self.drive_finished()
                 except MachineError:
