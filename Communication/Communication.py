@@ -81,7 +81,7 @@ class Communication():
             meth = getattr(self.motor, command['command'])
             self.sens_act_lock.acquire()
             if 'data' in command:
-                meth(**command['data'])
+                meth(*command['data'])
             else:
                 meth()
             self.sens_act_lock.release()
@@ -89,14 +89,14 @@ class Communication():
             meth = getattr(self.sens_act, command['command'])
             self.motor_lock.acquire()
             if 'data' in command:
-                meth(**command['data'])
+                meth(*command['data'])
             else:
                 meth()
             self.motor_lock.release()
         elif hasattr(self, command['command']):
             meth = getattr(self, command['command'])
             if 'data' in command:
-                meth(**command['data'])
+                meth(*command['data'])
             else:
                 meth()
         else:

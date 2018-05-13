@@ -58,7 +58,7 @@ class Vision(object):
         """
         run_method = getattr(self, command['command'])
         if 'data' in command:
-            run_method(**command['data'])
+            run_method(*command['data'])
         else:
             run_method()
 
