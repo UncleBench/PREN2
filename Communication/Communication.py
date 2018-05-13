@@ -75,7 +75,7 @@ class Communication():
         elif hasattr(self, command['command']):
             meth = getattr(self, command['command'])
         else:
-            raise ValueError('Unknow command')
+            raise ValueError('Unknown command')
         if hasattr(command, 'data'):
             meth(*command['data'])
         else:
