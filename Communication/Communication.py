@@ -40,7 +40,7 @@ class Communication():
     def update_position(self, sens_act_lock, motor_lock):
         print "start position update thread"
         while True:
-            sleep(1)
+            sleep(0.2)
             sens_act_lock.acquire()
             raw_alpha = self.sens_act.getRawAlpha()
             raw_beta = self.sens_act.getRawBeta()
@@ -49,8 +49,8 @@ class Communication():
             sens_act_lock.release()
 
             motor_lock.acquire()
-            #driven_dist = self.motor.get_pos_decoded()
-            driven_dist = ("Idle", {'x': 20.0, 'z': 20.0})
+            driven_dist = self.motor.get_pos_decoded()
+            #driven_dist = ("Idle", {'x': 20.0, 'z': 20.0})
             motor_lock.release()
 
             if stop_state is StopState.STOP:
