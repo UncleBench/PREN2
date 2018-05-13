@@ -17,9 +17,7 @@ class MotorControl:
             line.rstrip()
 
         if "[MSG:'$H'|'$X' to unlock]" in self.ser_com.readline():
-            self.set_command("$X\n")
-            self.ser_com.readline()
-            self.ser_com.readline()
+            self.set_command("$X")
 
     def set_command(self, command):
         self.ser_com.write(command + "\n")
@@ -27,6 +25,7 @@ class MotorControl:
         if "ok" in response_msg:
             return
         if "[MSG:Caution: Unlocked]" in response_msg:
+            self.ser_com.readline()
             return
         if "error" in response_msg:
             raise Exception("Grbl command" + command + " failed, " + response_msg)
