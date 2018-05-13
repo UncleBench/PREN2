@@ -18,12 +18,12 @@ class Communication():
         self.motor_lock = RLock()
         self.worker.start()
 
-        self.last_state = None
 
     def initiate_communication(self):
         print "start Communication Process"
         setproctitle("Communication")
 
+        self.last_state = None
         self.main_queue = MessageQueue(qname='ps_main')
         self.gui_queue = GUI()
         self.communication_queue = MessageQueue(callback=self.command_interpreter, qname='ps_communication')
@@ -71,8 +71,12 @@ class Communication():
     def command_interpreter(self, command):
         if hasattr(self.motor, command['cmd']):
             meth = getattr(self.motor, command['cmd'])
-        else:
+        elif hasattr(self.sens_act, command['cmd']):
             meth = getattr(self.sens_act, command['cmd'])
+        elif hasattr(self, command['cmd']):
+            meth = getattr(self, command['cmd'])
+        else:
+            raise ValueError('Unknow command')
         if hasattr(command, 'data'):
             meth(*command['data'])
         else:
