@@ -98,7 +98,7 @@ class PosSensor:
             self.platform = Platform()
         self.prachtstueck_dim = prachtstueck
         if self.prachtstueck_dim is None:
-            self.prachtstueck_dim = PrachtstueckDimensions(302.5, 10.0)
+            self.prachtstueck_dim = PrachtstueckDimensions(317.0, 11.5)
         self.alpha_sensor = alpha_sensor
         if self.alpha_sensor is None:
             self.alpha_sensor = AngleSensor(json_parsed["raw_alpha_0_avg"], json_parsed["sensitivity_avg"])  #0.001091)
@@ -161,7 +161,7 @@ class PosSensor:
         Returns:
             Position: x and z Position of the "Load"
         """
-        return Position(pos_prachtstueck.x, pos_prachtstueck.z - elevator_distance - self.prachtstueck_dim.offset_elevator, pos_prachtstueck.s)
+        return Position(pos_prachtstueck.x, pos_prachtstueck.z + elevator_distance - self.prachtstueck_dim.offset_elevator, pos_prachtstueck.s)
 
     def angle_correction(self, angle):
         """corrects the measuread angle
