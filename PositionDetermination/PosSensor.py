@@ -98,7 +98,7 @@ class PosSensor:
             self.platform = Platform()
         self.prachtstueck_dim = prachtstueck
         if self.prachtstueck_dim is None:
-            self.prachtstueck_dim = PrachtstueckDimensions(311.7, 1.5)
+            self.prachtstueck_dim = PrachtstueckDimensions(311.7, 4.5)
         self.alpha_sensor = alpha_sensor
         if self.alpha_sensor is None:
             self.alpha_sensor = AngleSensor(json_parsed["raw_alpha_0_avg"], json_parsed["sensitivity_avg"])  #0.001091)
