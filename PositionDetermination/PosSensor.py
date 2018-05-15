@@ -160,7 +160,7 @@ class PosSensor:
         Returns:
             Position: x and z Position of the "Load"
         """
-        return Position(pos_prachtstueck.x, pos_prachtstueck.z - elevator_distance + self.prachtstueck_dim.offset_elevator, pos_prachtstueck.s)
+        return Position(pos_prachtstueck.x, pos_prachtstueck.z + elevator_distance + self.prachtstueck_dim.offset_elevator, pos_prachtstueck.s)
 
     def angle_correction(self, angle):
         """corrects the measuread angle

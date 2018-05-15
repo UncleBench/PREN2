@@ -57,12 +57,13 @@ class Communication():
             #driven_dist = ("Idle", {'x': 20.0, 'z': 20.0})
             motor_lock.release()
 
-            if stop_state is StopState.STOP:
+            if stop_state is StopState.STOP:    # TODO maybe bugix needed (gui_queue is from different class now) -> update -> might be ok
                 self.gui_queue.send(Message('stop'))
                 self.main_queue.send(Message('stop'))
 
             state = driven_dist[0]
-            pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, 343.46-driven_dist[1]['x']/10, driven_dist[1]['z']/10)
+            # TODO outsource 343.46 to PosSensor class (as offset value), change value to actual value
+            pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, driven_dist[1]['x']/10, driven_dist[1]['z']/10)
 
             if self.last_state != state:
                 self.main_queue.send(Message('motor_state', state))
