@@ -64,6 +64,7 @@ class Communication():
             state = driven_dist[0]
             # TODO outsource 343.46 to PosSensor class (as offset value), change value to actual value
             pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, driven_dist[1]['x']/10, driven_dist[1]['z']/10)
+            print raw_alpha, raw_beta, driven_dist[1]['x']/10, driven_dist[1]['z']/10
 
             if self.last_state != state:
                 self.main_queue.send(Message('motor_state', state))

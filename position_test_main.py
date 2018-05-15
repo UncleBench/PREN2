@@ -26,6 +26,6 @@ if __name__ == '__main__':
         #x_dist = 40.0 + dist['x']
         x_dist = 192.5
         pos = posSensor.get_pos_prachtstueck(alpha_, beta_, x_dist)
-        print('x:{:5.1f}  z:{:5.1f} | s:{:5.1f} | ralpha:{:4d} rbeta:{:4d} | battery:{:5.1f}'.format(pos.x, pos.z, x_dist, alpha_, beta_, battery_v))
+        #print('x:{:5.1f}  z:{:5.1f} | s:{:5.1f} | ralpha:{:4d} rbeta:{:4d} | battery:{:5.1f}'.format(pos.x, pos.z, x_dist, alpha_, beta_, battery_v))
 
 
