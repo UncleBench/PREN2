@@ -3,7 +3,7 @@ import json
 
 
 class Position:
-    def __init__(self, x, z, s):
+    def __init__(self, x, z, s=None):
         """
         Args:
             x (float): [cm] x Position
@@ -98,7 +98,7 @@ class PosSensor:
             self.platform = Platform()
         self.prachtstueck_dim = prachtstueck
         if self.prachtstueck_dim is None:
-            self.prachtstueck_dim = PrachtstueckDimensions(10.0, 10.0)
+            self.prachtstueck_dim = PrachtstueckDimensions(302.5, 10.0)
         self.alpha_sensor = alpha_sensor
         if self.alpha_sensor is None:
             self.alpha_sensor = AngleSensor(json_parsed["raw_alpha_0_avg"], json_parsed["sensitivity_avg"])  #0.001091)
@@ -106,16 +106,17 @@ class PosSensor:
         if self.beta_sensor is None:
             self.beta_sensor = AngleSensor(json_parsed["raw_beta_0_avg"], -json_parsed["sensitivity_avg"])   #-0.001091)
 
-    def get_pos_prachtstueck(self, raw_alpha, raw_beta, dist_to_drive):
+    def get_pos_prachtstueck(self, raw_alpha, raw_beta, driven_dist):
         """calculates and returns the position of the "Prachtstueck" (shaft of the elevator motor; not the load!!!)
         Args:
             raw_alpha (int): raw ADC value of the alpha angle sensor
             raw_beta (int): raw ADC value of the beta angle sensor
-            dist_to_drive (float): distance to drive on the rope [cm]
+            driven_dist (float): already driven dist [cm]
 
         Returns:
             Position: x and z Position of the "Prachtstueck" (shaft of the elevator motor)
         """
+        dist_to_drive =self.prachtstueck_dim.offset_drive - driven_dist
         position = Position(0.0, 0.0, dist_to_drive)
         zeta = arctan2(self.platform.k, self.platform.b - self.platform.a)
         alpha = self.angle_correction(self.alpha_sensor.get_radiants(raw_alpha))
@@ -136,18 +137,18 @@ class PosSensor:
 
         return position
 
-    def get_pos_load_by_raw(self, raw_alpha, raw_beta, dist_to_drive, elevator_distance):
+    def get_pos_load_by_raw(self, raw_alpha, raw_beta, driven_dist, elevator_distance):
         """returns position of the load
         Args:
             raw_alpha (int): raw ADC value of the alpha angle sensor
             raw_beta (int): raw ADC value of the beta angle sensor
-            dist_to_drive (float): distance to drive on the rope [cm]
+            driven_dist (float): already driven distance [cm]
             elevator_distance (float): driven distance on the z axis in [cm]
 
         Returns:
             Position: x and z Position of the "Load"
         """
-        return self.get_pos_load_rel(self.get_pos_prachtstueck(raw_alpha, raw_beta, dist_to_drive),
+        return self.get_pos_load_rel(self.get_pos_prachtstueck(raw_alpha, raw_beta, driven_dist),
                                      elevator_distance)
 
     def get_pos_load_rel(self, pos_prachtstueck, elevator_distance):
