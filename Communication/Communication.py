@@ -69,7 +69,7 @@ class Communication():
             if self.last_state != state:
                 self.main_queue.send(Message('motor_state', state))
 
-            data = [pos.x, pos.z, battery_voltage]
+            data = [pos.x + 10.5, pos.z, battery_voltage]
             self.gui_queue.update(*data)
             data.append(pos.s)
             self.main_queue.send(Message("Position", data))
