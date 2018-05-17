@@ -47,7 +47,7 @@ def sensor_calibration(new_file, n_meas, meas_sens, z_pos, s_length):
             alphaSensor = PosSensor.AngleSensor(calibrated_val["raw_alpha_0_avg"], sensitivity)
             betaSensor = PosSensor.AngleSensor(calibrated_val["raw_beta_0_avg"], -sensitivity)
             pos_sensor = PosSensor.PosSensor(alpha_sensor=alphaSensor, beta_sensor=betaSensor)
-            pos = pos_sensor.get_pos_prachtstueck(int(median(result['raw_alpha'])), int(median(result['raw_beta'])), PosSensor.prachtstueck_dim.offset_drive - s_length)
+            pos = pos_sensor.get_pos_prachtstueck(int(median(result['raw_alpha'])), int(median(result['raw_beta'])), pos_sensor.testee.prachtstueck_dim.offset_drive - s_length)
 
             # binary approximation of the sensitivity
             interval /= 2
