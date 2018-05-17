@@ -16,14 +16,15 @@ class TestPosSensor(TestCase):
         s = 235.094
         alpha_ = (alpha / self.testee.alpha_sensor.rad_per_value) * pi / 180 + self.testee.alpha_sensor.offset_value
         beta_ = (beta / self.testee.beta_sensor.rad_per_value) * pi / 180 + self.testee.beta_sensor.offset_value
-        position = self.testee.get_pos_prachtstueck(alpha_, beta_, s)
+        position = self.testee.get_pos_prachtstueck(alpha_, beta_, self.testee.prachtstueck_dim.offset_drive - s)
         self.assertAlmostEqual(position.x, 98.868, delta=0.01)
         self.assertAlmostEqual(position.z, 43.654, delta=0.01)
 
     def test_get_pos_load_rel(self):
         pos = Position(200, 200)
-        result = self.testee.get_pos_load_rel(pos, 20)
-        self.assertAlmostEqual(result.z, 200.0 - self.prachtstueck.offset_elevator, delta=0.01)
+        result = self.testee.get_pos_load_rel(pos, - 20.0)
+
+        self.assertAlmostEqual(result.z, 200.0 -20.0 - self.testee.prachtstueck_dim.offset_elevator, delta=0.01)
         self.assertAlmostEqual(result.x, 200.0, delta=0.01)
 
     def test_angle_correction(self):
