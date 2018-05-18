@@ -76,7 +76,7 @@ class Prachtstueck():
         print("Greifer nach unten")
         self.vision_queue.send(Message('stop'))
         self.communication_queue.send(Message('stop'))
-        self.communication_queue.send(Message('drive', [30, -(self.position.z-20), 3500])) #-
+        self.communication_queue.send(Message('drive', [30, -(self.position.z*10-20), 3500])) #-
 
     def on_enter_release_load(self):
         print("Wuerfel loslassen")
@@ -106,14 +106,13 @@ class Prachtstueck():
         self.main_queue.shutdown()
 
     def interpret_command(self, msg):
-        print "msg: ", msg
         if self.is_sleep():
             if msg['command'] == 'home':
                 self.wake_up()
 
         if self.is_init():
-            #if msg['command'] == 'init_finished':
-            self.init_finished()
+            if msg['command'] == 'init_finished':
+                self.init_finished()
 
         if self.is_wait_for_start():
             if msg['command'] == 'start':
