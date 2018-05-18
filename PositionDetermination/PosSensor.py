@@ -121,7 +121,6 @@ class PosSensor:
         zeta = arctan2(self.platform.k, self.platform.b - self.platform.a)
         alpha = self.angle_correction(self.alpha_sensor.get_radiants(raw_alpha))
         beta = self.angle_correction(self.beta_sensor.get_radiants(raw_beta))
-        print "alpha: ", alpha, "beta: ", beta
 
         gamma = pi - alpha - beta
         ds = self.prachtstueck_dim.d * sin(beta) / sin(gamma)
@@ -149,7 +148,6 @@ class PosSensor:
         Returns:
             Position: x and z Position of the "Load"
         """
-        print driven_dist, elevator_distance
         return self.get_pos_load_rel(self.get_pos_prachtstueck(raw_alpha, raw_beta, driven_dist),
                                      elevator_distance)
 
