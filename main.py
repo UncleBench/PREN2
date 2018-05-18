@@ -96,7 +96,7 @@ class Prachtstueck():
 
     def on_enter_slow_to_stop(self):
         print("Langsam fahren solange Stopp nicht erreicht")
-        self.communication_queue.send(Message('drive_x', [50, 1000]))
+        self.communication_queue.send(Message('drive_x', [1000, 1000]))
 
     def on_enter_shutdown(self):
         print("Stop")
