@@ -112,8 +112,8 @@ class Prachtstueck():
                 self.wake_up()
 
         if self.is_init():
-            if msg['command'] == 'init_finished':
-                self.init_finished()
+            #if msg['command'] == 'init_finished':
+            self.init_finished()
 
         if self.is_wait_for_start():
             if msg['command'] == 'start':
