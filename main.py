@@ -61,7 +61,7 @@ class Prachtstueck():
     def on_enter_to_target(self):
         print("Fahren solange Zielplattform nicht in unterer Bildhaelfte")
         self.vision_queue.send(Message('start'))
-        self.communication_queue.send(Message('drive_x', [2000, 8000]))
+        self.communication_queue.send(Message('drive_x', [(300-self.position.x)*10, 8000]))
 
     def on_enter_center_target(self):
         print("Kamera bewegen nach unten")
@@ -92,7 +92,7 @@ class Prachtstueck():
     def on_enter_fast_to_stop(self):
         print("Berechne restliche Fahrt")
         print("Berechnete Strecke fahren")
-        self.communication_queue.send(Message('drive_x', [500, 10000])) #self.position.x-20
+        self.communication_queue.send(Message('drive_x', [(300-self.position.x)*10, 10000])) #self.position.x-20
 
     def on_enter_slow_to_stop(self):
         print("Langsam fahren solange Stopp nicht erreicht")
