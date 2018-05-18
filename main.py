@@ -106,6 +106,7 @@ class Prachtstueck():
         self.main_queue.shutdown()
 
     def interpret_command(self, msg):
+        print "msg: ", msg
         if self.is_sleep():
             if msg['command'] == 'home':
                 self.wake_up()
