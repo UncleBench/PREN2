@@ -76,7 +76,7 @@ class Prachtstueck():
         print("Greifer nach unten")
         self.vision_queue.send(Message('stop'))
         self.communication_queue.send(Message('stop'))
-        self.communication_queue.send(Message('drive', [30, -300, 3500])) #-(self.position.z-20)
+        self.communication_queue.send(Message('drive', [30, -(self.position.z-20), 3500])) #-
 
     def on_enter_release_load(self):
         print("Wuerfel loslassen")
