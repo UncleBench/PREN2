@@ -43,7 +43,7 @@ def sensor_calibration(new_file, n_meas, meas_sens, z_pos, s_length):
     else:
         sensitivity = 0.002
         interval = sensitivity
-        for k in range(0, 100, 1):
+        for k in range(0, 50, 1):
             alphaSensor = PosSensor.AngleSensor(calibrated_val["raw_alpha_0_avg"], sensitivity)
             betaSensor = PosSensor.AngleSensor(calibrated_val["raw_beta_0_avg"], -sensitivity)
             pos_sensor = PosSensor.PosSensor(alpha_sensor=alphaSensor, beta_sensor=betaSensor)
