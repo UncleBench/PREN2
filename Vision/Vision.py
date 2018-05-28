@@ -173,15 +173,15 @@ class Vision(object):
                             self.output_queue.send(Message('target_found',
                                                          target))
                         else:
-                            if 0.49 < target.y_ratio < 0.51:
+                            if 0.485 < target.y_ratio < 0.525:
                                 self.output_queue.send(Message('target_centered',
                                                              target))
                     cv2.circle(resized, (x, y), 5, YELLOW, -1)
 
                 # output target coordinates
-                self.draw_text(resized, 'Target: {:4f} : {:4f}'.format(x, y), RED)
+                #self.draw_text(resized, 'Target: {:4f} : {:4f}'.format(x, y), RED)
                 # show solidity and area
-                self.draw_solidity_and_area_on_contours(resized, target_cnts)
+                #self.draw_solidity_and_area_on_contours(resized, target_cnts)
 
                 # display original image with recognized contours
                 #cv2.imshow('Contours on original image', resized)
