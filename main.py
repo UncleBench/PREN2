@@ -23,6 +23,10 @@ class Prachtstueck():
         self.position = Position(0, 0, 0)
         self.batteryVoltage = 0.0
 
+    def on_enter_sleep(self):
+        print("Stop")
+        self.communication_queue.send(Message('stop'))
+
     def on_enter_init(self):
         print("Kommunikation Arduino Greifer, Whisker, Position, Batterie Raspi initialisieren")
         self.communication_queue.send(Message('setGrabber', [135]))
@@ -52,7 +56,6 @@ class Prachtstueck():
         self.gui_queue.send(Message('show_coord', True))
         sleep(1)
         self.load_grabbed()
-
 
     def on_enter_lift_load(self):
         print("Greifer nach oben")
@@ -99,7 +102,7 @@ class Prachtstueck():
         self.communication_queue.send(Message('drive_x', [1000, 3500]))
 
     def on_enter_shutdown(self):
-        print("Stop")
+        print("Shutdown")
         self.communication_queue.send(Message('stop'))
         self.vision_queue.send(Message('shutdown'))
         self.communication_queue.send(Message('shutdown'))
@@ -130,6 +133,9 @@ class Prachtstueck():
 
         if msg['command'] == 'stop':
             self.to_shutdown()
+
+        if msg['command'] == 'whisker':
+            self.stop_btn_pushed()
 
         if msg['command'] == 'motor_state':
             if msg['data'] == 'Idle':
@@ -168,7 +174,7 @@ if __name__ == '__main__':
         {'trigger': 'load_released', 'source': 'release_load', 'dest': 'lift_grabber'},
         {'trigger': 'drive_finished', 'source': 'lift_grabber', 'dest': 'fast_to_stop'},
         {'trigger': 'drive_finished', 'source': 'fast_to_stop', 'dest': 'slow_to_stop'},
-        {'trigger': 'stop_btn_pushed', 'source': 'slow_to_stop', 'dest': 'shutdown'},
+        {'trigger': 'stop_btn_pushed', 'source': '*', 'dest': 'sleep'},
     ]
 
     print "init state machine"

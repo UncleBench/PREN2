@@ -59,7 +59,7 @@ class Communication():
 
             if stop_state is StopState.STOP:
                 self.gui_queue.send(Message('stop'))
-                self.main_queue.send(Message('stop'))
+                self.main_queue.send(Message('whisker'))
 
             state = driven_dist[0]
             pos = self.pos_sensor.get_pos_load_by_raw(raw_alpha, raw_beta, driven_dist[1]['x']/10, driven_dist[1]['z']/10)
